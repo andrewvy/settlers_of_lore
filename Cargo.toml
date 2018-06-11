@@ -3,12 +3,9 @@ name = "settlers_of_lore"
 version = "0.1.0"
 authors = ["vy"]
 
-[dependencies]
-piston = "0.37.0"
-piston2d-opengl_graphics = "0.53.0"
-piston2d-graphics = "0.26.0"
-freetype-rs = "0.18.0"
-find_folder = "0.3.0"
+[dependencies.sdl2]
+version = "0.31.0"
+features = ["bundled"]
 
-[dependencies.pistoncore-sdl2_window]
-git = "https://github.com/PistonDevelopers/sdl2_window"
+[dependencies]
+ggez = "0.4"
