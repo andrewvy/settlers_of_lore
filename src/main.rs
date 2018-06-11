@@ -1,15 +1,15 @@
 extern crate find_folder;
 extern crate freetype;
-extern crate glutin_window;
 extern crate graphics;
 extern crate opengl_graphics;
 extern crate piston;
+extern crate sdl2_window;
 
-use glutin_window::GlutinWindow as Window;
 use opengl_graphics::{GlGraphics, OpenGL};
 use piston::event_loop::{EventLoop, EventSettings, Events};
 use piston::input::*;
 use piston::window::WindowSettings;
+use sdl2_window::Sdl2Window as Window;
 
 mod glyph_text;
 
