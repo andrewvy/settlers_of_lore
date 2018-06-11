@@ -1,9 +1,8 @@
 extern crate ggez;
 
 use ggez::conf::{WindowMode, WindowSetup};
-use ggez::event::{self, Keycode, Mod, MouseState};
-use ggez::graphics::{self, Color, DrawParam, Font, HorizontalAlign as HAlign, Layout, Point2,
-                     Rect, Scale, TextCached, TextFragment};
+use ggez::event::{self, Keycode, Mod, MouseButton, MouseState};
+use ggez::graphics::{self, Color, DrawParam, Point2, Rect, TextCached};
 use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
 
@@ -17,11 +16,12 @@ struct MainState {
     button: Button,
     mouse_x: i32,
     mouse_y: i32,
+    has_clicked: bool,
 }
 
 impl MainState {
-    fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let mut texts = BTreeMap::new();
+    fn new(_ctx: &mut Context) -> GameResult<MainState> {
+        let texts = BTreeMap::new();
 
         /*
         let font = Font::new_glyph_font(ctx, "/m5x7.ttf")?;
@@ -45,6 +45,7 @@ impl MainState {
             texts,
             mouse_x: 0,
             mouse_y: 0,
+            has_clicked: false,
             button: Button {
                 color: Color::new(0.5, 0.5, 0.5, 1.0),
                 rectangle: Rect {
@@ -54,6 +55,7 @@ impl MainState {
                     h: 50.0,
                 },
                 hovered: false,
+                selected: false,
             },
         })
     }
@@ -63,18 +65,21 @@ struct Button {
     rectangle: Rect,
     color: Color,
     hovered: bool,
+    selected: bool,
 }
 
 impl Button {
-    fn update(&mut self, mouse_x: i32, mouse_y: i32) {
+    fn update(&mut self, mouse_x: i32, mouse_y: i32, has_clicked: bool) {
         if (((mouse_x as f32) > self.rectangle.x)
             && ((mouse_x as f32) < self.rectangle.x + self.rectangle.w))
             && (((mouse_y as f32) > self.rectangle.y)
                 && ((mouse_y as f32) < self.rectangle.y + self.rectangle.h))
         {
             self.hovered = true;
+            self.selected = has_clicked;
         } else {
             self.hovered = false;
+            self.selected = false;
         }
     }
 
@@ -83,8 +88,12 @@ impl Button {
 
         let mut draw_mode = graphics::DrawMode::Line(1.0);
 
-        if self.hovered {
+        if self.hovered || self.selected {
             draw_mode = graphics::DrawMode::Fill;
+        }
+
+        if self.selected {
+            graphics::set_color(ctx, Color::new(1.0, 1.0, 1.0, 1.0))?;
         }
 
         graphics::rectangle(ctx, draw_mode, self.rectangle)
@@ -96,13 +105,16 @@ impl event::EventHandler for MainState {
         const DESIRED_FPS: u32 = 60;
         while timer::check_update_time(ctx, DESIRED_FPS) {}
 
-        self.button.update(self.mouse_x, self.mouse_y);
+        self.button
+            .update(self.mouse_x, self.mouse_y, self.has_clicked);
 
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx);
+
+        graphics::set_color(ctx, Color::new(0.5, 0.5, 0.5, 1.0))?;
 
         let fps = timer::get_fps(ctx);
         let fps_display = TextCached::new(format!("FPS: {}", fps))?;
@@ -148,6 +160,26 @@ impl event::EventHandler for MainState {
         _keymod: Mod,
         _repeat: bool,
     ) {
+    }
+
+    fn mouse_button_down_event(&mut self, _ctx: &mut Context, button: MouseButton, x: i32, y: i32) {
+        match button {
+            MouseButton::Left => {
+                self.mouse_x = x;
+                self.mouse_y = y;
+                self.has_clicked = true;
+            }
+            _ => {}
+        }
+    }
+
+    fn mouse_button_up_event(&mut self, _ctx: &mut Context, button: MouseButton, _x: i32, _y: i32) {
+        match button {
+            MouseButton::Left => {
+                self.has_clicked = false;
+            }
+            _ => {}
+        }
     }
 }
 
