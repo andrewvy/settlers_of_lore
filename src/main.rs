@@ -2,21 +2,27 @@ extern crate ggez;
 
 use ggez::conf::{WindowMode, WindowSetup};
 use ggez::event::{self, Keycode, Mod, MouseButton, MouseState};
-use ggez::graphics::{self, Color, DrawParam, Point2, Rect, TextCached};
+use ggez::graphics::{self, Color, DrawParam, Point2, TextCached};
 use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
+
+mod menu;
 
 use std::collections::BTreeMap;
 use std::env;
 use std::f32;
 use std::path;
 
+use menu::MenuState;
+
 struct MainState {
     texts: BTreeMap<&'static str, TextCached>,
-    button: Button,
     mouse_x: i32,
     mouse_y: i32,
     has_clicked: bool,
+    menu_state: MenuState,
+    arrow_key_pressed: Option<Keycode>,
+    select_key_pressed: bool,
 }
 
 impl MainState {
@@ -28,7 +34,7 @@ impl MainState {
 
         let mut text = TextCached::new(TextFragment {
             text: "Hello, world!".to_string(),
-            font_id: Some(font.clone().into()),
+            font_id: So_e(font.clone().into()),
             scale: Some(Scale::uniform(48.0)),
             ..Default::default()
         })?;
@@ -46,57 +52,10 @@ impl MainState {
             mouse_x: 0,
             mouse_y: 0,
             has_clicked: false,
-            button: Button {
-                color: Color::new(0.5, 0.5, 0.5, 1.0),
-                rectangle: Rect {
-                    x: 50.0,
-                    y: 150.0,
-                    w: 150.0,
-                    h: 50.0,
-                },
-                hovered: false,
-                selected: false,
-            },
+            menu_state: MenuState::new(),
+            arrow_key_pressed: None,
+            select_key_pressed: false,
         })
-    }
-}
-
-struct Button {
-    rectangle: Rect,
-    color: Color,
-    hovered: bool,
-    selected: bool,
-}
-
-impl Button {
-    fn update(&mut self, mouse_x: i32, mouse_y: i32, has_clicked: bool) {
-        if (((mouse_x as f32) > self.rectangle.x)
-            && ((mouse_x as f32) < self.rectangle.x + self.rectangle.w))
-            && (((mouse_y as f32) > self.rectangle.y)
-                && ((mouse_y as f32) < self.rectangle.y + self.rectangle.h))
-        {
-            self.hovered = true;
-            self.selected = has_clicked;
-        } else {
-            self.hovered = false;
-            self.selected = false;
-        }
-    }
-
-    fn render(&self, ctx: &mut Context) -> GameResult<()> {
-        graphics::set_color(ctx, self.color)?;
-
-        let mut draw_mode = graphics::DrawMode::Line(1.0);
-
-        if self.hovered || self.selected {
-            draw_mode = graphics::DrawMode::Fill;
-        }
-
-        if self.selected {
-            graphics::set_color(ctx, Color::new(1.0, 1.0, 1.0, 1.0))?;
-        }
-
-        graphics::rectangle(ctx, draw_mode, self.rectangle)
     }
 }
 
@@ -105,8 +64,22 @@ impl event::EventHandler for MainState {
         const DESIRED_FPS: u32 = 60;
         while timer::check_update_time(ctx, DESIRED_FPS) {}
 
-        self.button
-            .update(self.mouse_x, self.mouse_y, self.has_clicked);
+        if let Some(keycode) = self.arrow_key_pressed {
+            match keycode {
+                Keycode::Up => {
+                    self.menu_state.up();
+                }
+                Keycode::Down => {
+                    self.menu_state.down();
+                }
+                _ => {}
+            }
+        }
+
+        if self.select_key_pressed {
+            self.menu_state.select();
+            self.select_key_pressed = false;
+        }
 
         Ok(())
     }
@@ -132,7 +105,7 @@ impl event::EventHandler for MainState {
 
         TextCached::draw_queued(ctx, DrawParam::default())?;
 
-        self.button.render(ctx)?;
+        self.menu_state.render(ctx)?;
 
         graphics::present(ctx);
         timer::yield_now();
@@ -156,10 +129,31 @@ impl event::EventHandler for MainState {
     fn key_down_event(
         &mut self,
         _ctx: &mut Context,
-        _keycode: Keycode,
+        keycode: Keycode,
         _keymod: Mod,
         _repeat: bool,
     ) {
+        match keycode {
+            Keycode::Up | Keycode::Down | Keycode::Left | Keycode::Right => {
+                self.arrow_key_pressed = Some(keycode);
+            }
+            Keycode::Return => {
+                self.select_key_pressed = true;
+            }
+            _ => {}
+        }
+    }
+
+    fn key_up_event(&mut self, _ctx: &mut Context, keycode: Keycode, _keymod: Mod, _repeat: bool) {
+        match keycode {
+            Keycode::Up | Keycode::Down | Keycode::Left | Keycode::Right => {
+                self.arrow_key_pressed = None;
+            }
+            Keycode::Return => {
+                self.select_key_pressed = false;
+            }
+            _ => {}
+        }
     }
 
     fn mouse_button_down_event(&mut self, _ctx: &mut Context, button: MouseButton, x: i32, y: i32) {
