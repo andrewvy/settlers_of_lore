@@ -1,23 +1,26 @@
-extern crate graphics;
+extern crate find_folder;
 extern crate freetype as ft;
 extern crate glutin_window;
+extern crate graphics;
 extern crate opengl_graphics;
 extern crate piston;
-extern crate find_folder;
 
 use glutin_window::GlutinWindow as Window;
-use opengl_graphics::{ GlGraphics, Texture, TextureSettings, OpenGL };
-use piston::window::WindowSettings;
-use piston::input::*;
-use piston::event_loop::{Events, EventSettings, EventLoop};
 use graphics::{Context, Graphics, ImageSize};
+use opengl_graphics::{GlGraphics, OpenGL, Texture, TextureSettings};
+use piston::event_loop::{EventLoop, EventSettings, Events};
+use piston::input::*;
+use piston::window::WindowSettings;
 
 fn glyphs(face: &mut ft::Face, text: &str) -> Vec<(Texture, [f64; 2])> {
     let mut x = 10;
     let mut y = 0;
     let mut res = vec![];
+
     for ch in text.chars() {
-        face.load_char(ch as usize, ft::face::LoadFlag::RENDER).unwrap();
+        face.load_char(ch as usize, ft::face::LoadFlag::RENDER)
+            .unwrap();
+
         let g = face.glyph();
 
         let bitmap = g.bitmap();
@@ -25,35 +28,36 @@ fn glyphs(face: &mut ft::Face, text: &str) -> Vec<(Texture, [f64; 2])> {
             bitmap.buffer(),
             bitmap.width() as u32,
             bitmap.rows() as u32,
-            &TextureSettings::new()
+            &TextureSettings::new(),
         ).unwrap();
-        res.push((texture, [(x + g.bitmap_left()) as f64, (y - g.bitmap_top()) as f64]));
+
+        res.push((
+            texture,
+            [(x + g.bitmap_left()) as f64, (y - g.bitmap_top()) as f64],
+        ));
 
         x += (g.advance().x >> 6) as i32;
         y += (g.advance().y >> 6) as i32;
     }
+
     res
 }
 
 fn render_text<G, T>(glyphs: &[(T, [f64; 2])], c: &Context, gl: &mut G)
-    where G: Graphics<Texture = T>, T: ImageSize
+where
+    G: Graphics<Texture = T>,
+    T: ImageSize,
 {
     for &(ref texture, [x, y]) in glyphs {
         use graphics::*;
 
-        Image::new_color(color::BLACK).draw(
-            texture,
-            &c.draw_state,
-            c.transform.trans(x, y),
-            gl
-        );
+        Image::new_color(color::BLACK).draw(texture, &c.draw_state, c.transform.trans(x, y), gl);
     }
 }
 
 fn main() {
     let opengl = OpenGL::V3_2;
-    let mut window: Window =
-        WindowSettings::new("piston-example-freetype", [1024, 720])
+    let mut window: Window = WindowSettings::new("piston-example-freetype", [1024, 720])
         .resizable(false)
         .opengl(opengl)
         .samples(2)
@@ -61,7 +65,8 @@ fn main() {
         .unwrap();
 
     let assets = find_folder::Search::ParentsThenKids(3, 3)
-        .for_folder("assets").unwrap();
+        .for_folder("assets")
+        .unwrap();
     let freetype = ft::Library::init().unwrap();
     let font = assets.join("m5x7.ttf");
     let mut face = freetype.new_face(&font, 0).unwrap();
