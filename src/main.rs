@@ -6,52 +6,72 @@ extern crate opengl_graphics;
 extern crate piston;
 
 use glutin_window::GlutinWindow as Window;
-use graphics::{Context, Graphics, ImageSize};
+use graphics::{Context, Graphics};
 use opengl_graphics::{GlGraphics, OpenGL, Texture, TextureSettings};
 use piston::event_loop::{EventLoop, EventSettings, Events};
 use piston::input::*;
 use piston::window::WindowSettings;
 
-fn glyphs(face: &mut ft::Face, text: &str) -> Vec<(Texture, [f64; 2])> {
-    let mut x = 10;
-    let mut y = 0;
-    let mut res = vec![];
-
-    for ch in text.chars() {
-        face.load_char(ch as usize, ft::face::LoadFlag::RENDER)
-            .unwrap();
-
-        let g = face.glyph();
-
-        let bitmap = g.bitmap();
-        let texture = Texture::from_memory_alpha(
-            bitmap.buffer(),
-            bitmap.width() as u32,
-            bitmap.rows() as u32,
-            &TextureSettings::new(),
-        ).unwrap();
-
-        res.push((
-            texture,
-            [(x + g.bitmap_left()) as f64, (y - g.bitmap_top()) as f64],
-        ));
-
-        x += (g.advance().x >> 6) as i32;
-        y += (g.advance().y >> 6) as i32;
-    }
-
-    res
+pub struct GlyphText<'a> {
+    fontface: &'a ft::Face,
+    text: String,
+    glyphs: Box<Vec<(Texture, [f64; 2])>>,
 }
 
-fn render_text<G, T>(glyphs: &[(T, [f64; 2])], c: &Context, gl: &mut G)
-where
-    G: Graphics<Texture = T>,
-    T: ImageSize,
-{
-    for &(ref texture, [x, y]) in glyphs {
-        use graphics::*;
+impl<'a> GlyphText<'a> {
+    pub fn new(fontface: &'a ft::Face, text: String) -> GlyphText<'a> {
+        let mut text_struct = GlyphText {
+            fontface: fontface,
+            text: text,
+            glyphs: Box::new(Vec::new()),
+        };
 
-        Image::new_color(color::BLACK).draw(texture, &c.draw_state, c.transform.trans(x, y), gl);
+        text_struct.generate_glyphs();
+        text_struct
+    }
+
+    pub fn generate_glyphs(&mut self) {
+        let mut x = 10;
+        let mut y = 0;
+        for ch in self.text.chars() {
+            self.fontface
+                .load_char(ch as usize, ft::face::LoadFlag::RENDER)
+                .unwrap();
+
+            let g = self.fontface.glyph();
+
+            let bitmap = g.bitmap();
+            let texture = Texture::from_memory_alpha(
+                bitmap.buffer(),
+                bitmap.width() as u32,
+                bitmap.rows() as u32,
+                &TextureSettings::new(),
+            ).unwrap();
+
+            self.glyphs.push((
+                texture,
+                [(x + g.bitmap_left()) as f64, (y - g.bitmap_top()) as f64],
+            ));
+
+            x += (g.advance().x >> 6) as i32;
+            y += (g.advance().y >> 6) as i32;
+        }
+    }
+
+    pub fn render<G>(&self, c: &Context, gl: &mut G)
+    where
+        G: Graphics<Texture = Texture>,
+    {
+        for &(ref texture, [x, y]) in self.glyphs.iter() {
+            use graphics::*;
+
+            Image::new_color(color::BLACK).draw(
+                texture,
+                &c.draw_state,
+                c.transform.trans(x, y),
+                gl,
+            );
+        }
     }
 }
 
@@ -69,20 +89,20 @@ fn main() {
         .unwrap();
     let freetype = ft::Library::init().unwrap();
     let font = assets.join("m5x7.ttf");
-    let mut face = freetype.new_face(&font, 0).unwrap();
-    face.set_pixel_sizes(0, 48).unwrap();
+    let fontface = freetype.new_face(&font, 0).unwrap();
+    fontface.set_pixel_sizes(0, 48).unwrap();
 
     let ref mut gl = GlGraphics::new(opengl);
-    let glyphs = glyphs(&mut face, "Hello Piston!");
+    let text = GlyphText::new(&fontface, "Hello Piston!".to_owned());
 
     let mut events = Events::new(EventSettings::new().lazy(true));
     while let Some(e) = events.next(&mut window) {
         if let Some(args) = e.render_args() {
-            use graphics::*;
+            use graphics::{clear, color, Transformed};
 
             gl.draw(args.viewport(), |c, gl| {
                 clear(color::WHITE, gl);
-                render_text(&glyphs, &c.trans(0.0, 27.0), gl);
+                text.render(&c.trans(0.0, 27.0), gl);
             });
         }
     }
