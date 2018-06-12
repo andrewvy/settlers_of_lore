@@ -62,6 +62,11 @@ impl Menus {
                             y: 170.0,
                             text: "Settings".to_string(),
                         },
+                        MenuItem {
+                            x: 50.0,
+                            y: 190.0,
+                            text: "Quit".to_string(),
+                        },
                     ],
                 },
                 Menu {

@@ -12,11 +12,13 @@ use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
 
 mod assets;
+mod input;
 mod menu;
 mod screen;
 mod state;
 
 use assets::Assets;
+use input::{Buttons, ControllerState, InputBinding};
 use menu::Menus;
 use screen::Screen;
 use state::Store;
@@ -26,28 +28,30 @@ struct MainState {
     mouse_y: i32,
     has_clicked: bool,
     menus: Menus,
-    arrow_key_pressed: Option<Keycode>,
-    select_key_pressed: bool,
     store: Store,
     assets: Assets,
     screen: Screen,
+    input_binding: InputBinding,
+    controller_state: ControllerState,
 }
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let screen = Screen::new(ctx)?;
         let assets = Assets::new(ctx, &screen)?;
+        let input_binding = InputBinding::new();
+        let controller_state = ControllerState::new();
 
         Ok(MainState {
             mouse_x: 0,
             mouse_y: 0,
             has_clicked: false,
             menus: Menus::new(),
-            arrow_key_pressed: None,
-            select_key_pressed: false,
             store: Store::new(),
             screen,
             assets,
+            input_binding,
+            controller_state,
         })
     }
 }
@@ -57,21 +61,14 @@ impl event::EventHandler for MainState {
         const DESIRED_FPS: u32 = 60;
         while timer::check_update_time(ctx, DESIRED_FPS) {}
 
-        if let Some(keycode) = self.arrow_key_pressed {
-            match keycode {
-                Keycode::Up => self.menus.up(&mut self.store),
-                Keycode::Down => self.menus.down(&mut self.store),
-                _ => {}
-            }
-
-            self.arrow_key_pressed = None;
+        if self.controller_state.get_button_pressed(Buttons::Up) {
+            self.menus.up(&mut self.store);
+        } else if self.controller_state.get_button_pressed(Buttons::Down) {
+            self.menus.down(&mut self.store);
         }
 
         self.store.update();
-
-        if self.select_key_pressed {
-            self.select_key_pressed = false;
-        }
+        self.controller_state.update();
 
         Ok(())
     }
@@ -137,26 +134,14 @@ impl event::EventHandler for MainState {
         _keymod: Mod,
         _repeat: bool,
     ) {
-        match keycode {
-            Keycode::Up | Keycode::Down | Keycode::Left | Keycode::Right => {
-                self.arrow_key_pressed = Some(keycode);
-            }
-            Keycode::Return => {
-                self.select_key_pressed = true;
-            }
-            _ => {}
+        if let Some(button) = self.input_binding.resolve(keycode) {
+            self.controller_state.button_down(button);
         }
     }
 
     fn key_up_event(&mut self, _ctx: &mut Context, keycode: Keycode, _keymod: Mod, _repeat: bool) {
-        match keycode {
-            Keycode::Up | Keycode::Down | Keycode::Left | Keycode::Right => {
-                self.arrow_key_pressed = None;
-            }
-            Keycode::Return => {
-                self.select_key_pressed = false;
-            }
-            _ => {}
+        if let Some(button) = self.input_binding.resolve(keycode) {
+            self.controller_state.button_up(button);
         }
     }
 
