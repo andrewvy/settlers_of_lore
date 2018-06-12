@@ -9,13 +9,16 @@ use std::path;
 
 use ggez::conf::{WindowMode, WindowSetup};
 use ggez::event::{self, Keycode, Mod, MouseButton, MouseState};
-use ggez::graphics::{self, Color, DrawParam, Point2, TextCached};
+use ggez::graphics::Scale;
+use ggez::graphics::{self, Color, DrawParam, Point2, TextCached, TextFragment};
 use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
 
+mod assets;
 mod menu;
 mod state;
 
+use assets::Assets;
 use menu::Menus;
 use state::Store;
 
@@ -28,10 +31,11 @@ struct MainState {
     arrow_key_pressed: Option<Keycode>,
     select_key_pressed: bool,
     store: Store,
+    assets: Assets,
 }
 
 impl MainState {
-    fn new(_ctx: &mut Context) -> GameResult<MainState> {
+    fn new(ctx: &mut Context) -> GameResult<MainState> {
         let texts = BTreeMap::new();
 
         /*
@@ -52,6 +56,8 @@ impl MainState {
         texts.insert("0_hello", text);
         */
 
+        let assets = Assets::new(ctx)?;
+
         Ok(MainState {
             texts,
             mouse_x: 0,
@@ -61,6 +67,7 @@ impl MainState {
             arrow_key_pressed: None,
             select_key_pressed: false,
             store: Store::new(),
+            assets,
         })
     }
 }
@@ -95,12 +102,22 @@ impl event::EventHandler for MainState {
         graphics::set_color(ctx, Color::new(0.5, 0.5, 0.5, 1.0))?;
 
         let fps = timer::get_fps(ctx);
-        let fps_display = TextCached::new(format!("FPS: {}", fps))?;
+        let fps_display = TextCached::new(TextFragment {
+            text: format!("FPS: {}", fps),
+            font_id: Some(self.assets.font.clone().into()),
+            scale: Some(self.assets.default_scale),
+            ..Default::default()
+        })?;
 
-        let mouse_coords = TextCached::new(format!("x: {}, y: {}", self.mouse_x, self.mouse_y))?;
+        let mouse_coords = TextCached::new(TextFragment {
+            text: format!("x: {}, y: {}", self.mouse_x, self.mouse_y),
+            font_id: Some(self.assets.font.clone().into()),
+            scale: Some(self.assets.default_scale),
+            ..Default::default()
+        })?;
 
-        graphics::draw(ctx, &fps_display, Point2::new(0.0, 0.0), 0.0)?;
-        graphics::draw(ctx, &mouse_coords, Point2::new(0.0, 20.0), 0.0)?;
+        fps_display.queue(ctx, Point2::new(0.0, 0.0), None);
+        mouse_coords.queue(ctx, Point2::new(0.0, 20.0), None);
 
         let mut height = 0.0;
         for (_key, text) in &self.texts {
