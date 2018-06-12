@@ -1,7 +1,7 @@
 use ggez::graphics;
 use ggez::{Context, GameResult};
 
-pub struct Window {
+pub struct Screen {
     pub logical_w: u32,
     pub logical_h: u32,
     pub screen_w: u32,
@@ -10,8 +10,8 @@ pub struct Window {
     pub scale_h: f32,
 }
 
-impl Window {
-    pub fn new(ctx: &mut Context) -> GameResult<Window> {
+impl Screen {
+    pub fn new(ctx: &mut Context) -> GameResult<Screen> {
         let (logical_w, logical_h) = graphics::get_size(ctx);
         let (screen_w, screen_h) = graphics::get_drawable_size(ctx);
         let (scale_w, scale_h) = (
@@ -19,7 +19,7 @@ impl Window {
             (screen_h as f32 / logical_h as f32),
         );
 
-        Ok(Window {
+        Ok(Screen {
             logical_w,
             logical_h,
             screen_w,
