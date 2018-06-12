@@ -1,4 +1,11 @@
+#![windows_subsystem = "windows"]
+
 extern crate ggez;
+
+use std::collections::BTreeMap;
+use std::env;
+use std::f32;
+use std::path;
 
 use ggez::conf::{WindowMode, WindowSetup};
 use ggez::event::{self, Keycode, Mod, MouseButton, MouseState};
@@ -7,22 +14,20 @@ use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
 
 mod menu;
+mod state;
 
-use std::collections::BTreeMap;
-use std::env;
-use std::f32;
-use std::path;
-
-use menu::MenuState;
+use menu::Menus;
+use state::Store;
 
 struct MainState {
     texts: BTreeMap<&'static str, TextCached>,
     mouse_x: i32,
     mouse_y: i32,
     has_clicked: bool,
-    menu_state: MenuState,
+    menus: Menus,
     arrow_key_pressed: Option<Keycode>,
     select_key_pressed: bool,
+    store: Store,
 }
 
 impl MainState {
@@ -52,9 +57,10 @@ impl MainState {
             mouse_x: 0,
             mouse_y: 0,
             has_clicked: false,
-            menu_state: MenuState::new(),
+            menus: Menus::new(),
             arrow_key_pressed: None,
             select_key_pressed: false,
+            store: Store::new(),
         })
     }
 }
@@ -66,18 +72,17 @@ impl event::EventHandler for MainState {
 
         if let Some(keycode) = self.arrow_key_pressed {
             match keycode {
-                Keycode::Up => {
-                    self.menu_state.up();
-                }
-                Keycode::Down => {
-                    self.menu_state.down();
-                }
+                Keycode::Up => self.menus.up(&mut self.store),
+                Keycode::Down => self.menus.down(&mut self.store),
                 _ => {}
             }
+
+            self.arrow_key_pressed = None;
         }
 
+        self.store.update();
+
         if self.select_key_pressed {
-            self.menu_state.select();
             self.select_key_pressed = false;
         }
 
@@ -105,7 +110,7 @@ impl event::EventHandler for MainState {
 
         TextCached::draw_queued(ctx, DrawParam::default())?;
 
-        self.menu_state.render(ctx)?;
+        self.menus.render(&self.store, ctx)?;
 
         graphics::present(ctx);
         timer::yield_now();
