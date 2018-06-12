@@ -14,10 +14,12 @@ use ggez::{Context, ContextBuilder, GameResult};
 mod assets;
 mod menu;
 mod state;
+mod window;
 
 use assets::Assets;
 use menu::Menus;
 use state::Store;
+use window::Window;
 
 struct MainState {
     mouse_x: i32,
@@ -28,11 +30,13 @@ struct MainState {
     select_key_pressed: bool,
     store: Store,
     assets: Assets,
+    window: Window,
 }
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let assets = Assets::new(ctx)?;
+        let window = Window::new(ctx)?;
+        let assets = Assets::new(ctx, &window)?;
 
         Ok(MainState {
             mouse_x: 0,
@@ -42,6 +46,7 @@ impl MainState {
             arrow_key_pressed: None,
             select_key_pressed: false,
             store: Store::new(),
+            window,
             assets,
         })
     }
@@ -91,8 +96,16 @@ impl event::EventHandler for MainState {
             ..Default::default()
         })?;
 
-        fps_display.queue(ctx, Point2::new(0.0, 0.0), None);
-        mouse_coords.queue(ctx, Point2::new(0.0, 20.0), None);
+        fps_display.queue(
+            ctx,
+            self.window.to_screen_coordinates(Point2::new(0.0, 0.0)),
+            None,
+        );
+        mouse_coords.queue(
+            ctx,
+            self.window.to_screen_coordinates(Point2::new(0.0, 20.0)),
+            None,
+        );
 
         TextCached::draw_queued(ctx, DrawParam::default())?;
 

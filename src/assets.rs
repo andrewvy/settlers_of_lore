@@ -1,5 +1,7 @@
-use ggez::graphics::{self, Font, Scale};
+use ggez::graphics::{Font, Scale};
 use ggez::{Context, GameResult};
+
+use window::Window;
 
 pub struct Assets {
     pub font: Font,
@@ -7,25 +9,12 @@ pub struct Assets {
 }
 
 impl Assets {
-    pub fn new(ctx: &mut Context) -> GameResult<Assets> {
+    pub fn new(ctx: &mut Context, window: &Window) -> GameResult<Assets> {
         let font = Font::new_glyph_font(ctx, "/m5x7.ttf")?;
-
-        let (window_w, window_h) = graphics::get_size(ctx);
-        let (displayable_w, displayable_h) = graphics::get_drawable_size(ctx);
-        let (display_scale_w, display_scale_h) = (
-            (displayable_w as f32 / window_w as f32),
-            (displayable_h as f32 / window_h as f32),
-        );
-
-        println!("scale_w {} scale_h {}", display_scale_w, display_scale_h);
 
         Ok(Assets {
             font: font,
-            default_scale: Assets::display_independent_scale(
-                display_scale_w,
-                display_scale_h,
-                24.0,
-            ),
+            default_scale: Assets::display_independent_scale(window.scale_w, window.scale_h, 24.0),
         })
     }
 
