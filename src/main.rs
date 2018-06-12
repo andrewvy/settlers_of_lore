@@ -2,14 +2,11 @@
 
 extern crate ggez;
 
-use std::collections::BTreeMap;
 use std::env;
-use std::f32;
 use std::path;
 
 use ggez::conf::{WindowMode, WindowSetup};
 use ggez::event::{self, Keycode, Mod, MouseButton, MouseState};
-use ggez::graphics::Scale;
 use ggez::graphics::{self, Color, DrawParam, Point2, TextCached, TextFragment};
 use ggez::timer;
 use ggez::{Context, ContextBuilder, GameResult};
@@ -23,7 +20,6 @@ use menu::Menus;
 use state::Store;
 
 struct MainState {
-    texts: BTreeMap<&'static str, TextCached>,
     mouse_x: i32,
     mouse_y: i32,
     has_clicked: bool,
@@ -36,30 +32,9 @@ struct MainState {
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let texts = BTreeMap::new();
-
-        /*
-        let font = Font::new_glyph_font(ctx, "/m5x7.ttf")?;
-
-        let mut text = TextCached::new(TextFragment {
-            text: "Hello, world!".to_string(),
-            font_id: So_e(font.clone().into()),
-            scale: Some(Scale::uniform(48.0)),
-            ..Default::default()
-        })?;
-
-        text.set_bounds(
-            Point2::new(300.0, f32::INFINITY),
-            Some(Layout::default().h_align(HAlign::Center)),
-        );
-
-        texts.insert("0_hello", text);
-        */
-
         let assets = Assets::new(ctx)?;
 
         Ok(MainState {
-            texts,
             mouse_x: 0,
             mouse_y: 0,
             has_clicked: false,
@@ -118,12 +93,6 @@ impl event::EventHandler for MainState {
 
         fps_display.queue(ctx, Point2::new(0.0, 0.0), None);
         mouse_coords.queue(ctx, Point2::new(0.0, 20.0), None);
-
-        let mut height = 0.0;
-        for (_key, text) in &self.texts {
-            text.queue(ctx, Point2::new(0.0, 20.0 + height), None);
-            height += 20.0 + text.height(ctx) as f32;
-        }
 
         TextCached::draw_queued(ctx, DrawParam::default())?;
 

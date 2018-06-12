@@ -1,11 +1,9 @@
-use ggez::graphics::{self, Font, FontId, Scale};
+use ggez::graphics::{self, Font, Scale};
 use ggez::{Context, GameResult};
 
 pub struct Assets {
     pub font: Font,
     pub default_scale: Scale,
-    display_scale_w: f32,
-    display_scale_h: f32,
 }
 
 impl Assets {
@@ -28,8 +26,6 @@ impl Assets {
                 display_scale_h,
                 24.0,
             ),
-            display_scale_w,
-            display_scale_h,
         })
     }
 
