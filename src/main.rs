@@ -11,6 +11,7 @@ use ggez::ContextBuilder;
 
 mod app;
 mod assets;
+mod gui;
 mod input;
 mod menu;
 mod screen;
