@@ -1,9 +1,12 @@
+use std::path;
+
 use ggez::event::{self, Keycode, Mod};
-use ggez::graphics::{self, Color, DrawParam, Point2, TextCached, TextFragment};
+use ggez::graphics::{self, spritebatch, Color, DrawParam, Point2, Rect, TextCached, TextFragment};
 use ggez::timer;
 use ggez::{Context, GameResult};
+use warmy;
 
-use assets::Assets;
+use assets::{self, Assets};
 use input::{Buttons, ControllerState, InputBinding};
 use menu::Menus;
 use screen::Screen;
@@ -16,18 +19,36 @@ pub struct AppState {
     screen: Screen,
     input_binding: InputBinding,
     controller_state: ControllerState,
+    sprite_batch: spritebatch::SpriteBatch,
+    pub asset_store: warmy::Store<Context>,
 }
 
 impl AppState {
-    pub fn new(ctx: &mut Context) -> GameResult<AppState> {
+    pub fn new(resource_dir: Option<path::PathBuf>, ctx: &mut Context) -> GameResult<AppState> {
         let screen = Screen::new(ctx)?;
         let assets = Assets::new(ctx, &screen)?;
         let input_binding = InputBinding::new();
         let controller_state = ControllerState::new();
 
+        let resource_pathbuf: path::PathBuf = match resource_dir {
+            Some(s) => s,
+            None => ctx.filesystem.get_resources_dir().to_owned(),
+        };
+
+        let opt = warmy::StoreOpt::default().set_root(resource_pathbuf);
+        let mut asset_store = warmy::Store::new(opt).expect("No asset store?");
+
+        let tileset = asset_store
+            .get::<_, assets::Image>(&warmy::FSKey::new("cb_temple_b.png"), ctx)
+            .unwrap();
+
+        let sprite_batch = spritebatch::SpriteBatch::new((tileset.borrow().0).clone());
+
         Ok(AppState {
             menus: Menus::new(),
             store: Store::new(),
+            sprite_batch,
+            asset_store,
             screen,
             assets,
             input_binding,
@@ -68,12 +89,30 @@ impl event::EventHandler for AppState {
 
         fps_display.queue(
             ctx,
-            self.screen.to_screen_coordinates(Point2::new(0.0, 0.0)),
+            self.screen.to_screen_coordinates(Point2::new(5.0, 0.0)),
             None,
         );
         TextCached::draw_queued(ctx, DrawParam::default())?;
 
         self.menus.render(&self.store, ctx)?;
+
+        let p = DrawParam {
+            src: Rect::new(
+                (1.0 / 32.0) * 1.0,
+                (1.0 / 35.0) * 1.0,
+                (1.0 / 32.0) * 4.0,
+                (1.0 / 35.0) * 4.0,
+            ),
+            dest: Point2::new(6.0, 32.0),
+            scale: Point2::new(2.0, 2.0),
+            color: Some(Color::new(1.0, 1.0, 1.0, 1.0)),
+            ..Default::default()
+        };
+
+        self.sprite_batch.add(p);
+
+        graphics::draw(ctx, &self.sprite_batch, Point2::new(0.0, 0.0), 0.0)?;
+        self.sprite_batch.clear();
 
         graphics::present(ctx);
         timer::yield_now();

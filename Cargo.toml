@@ -9,3 +9,4 @@ features = ["bundled"]
 
 [dependencies]
 ggez = "0.4"
+warmy = "0.7.2"
