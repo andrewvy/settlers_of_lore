@@ -1,25 +1,46 @@
+use std::collections::VecDeque;
+
+use ggez::graphics;
 use ggez::{Context, GameResult};
 use input::Buttons;
 
-pub trait WidgetEvent {}
+#[derive(Debug)]
+pub enum WidgetEvent {
+    ButtonEvent(ButtonEvent),
+}
+
+#[derive(Debug)]
+pub enum ButtonEvent {
+    Clicked,
+}
 
 pub trait Renderable {
     fn render(&self, ctx: &mut Context) -> GameResult<()>;
 }
 
 pub trait Widget: Renderable {
-    fn interact(&self, interaction: Buttons);
+    fn interact(&self, interaction: Buttons, messages: &mut VecDeque<WidgetEvent>);
 }
 
-pub struct Panel {
-    widgets: Vec<Box<Widget>>,
+pub struct GuiManager {
+    pub widgets: Vec<Box<Widget>>,
 }
 
-impl Panel {
-    pub fn interact(&self, interaction: Buttons) {
-        for widget in self.widgets.iter() {
-            widget.interact(interaction)
+impl GuiManager {
+    pub fn new() -> GuiManager {
+        GuiManager {
+            widgets: Vec::new(),
         }
+    }
+
+    pub fn interact(&self, interaction: Buttons) -> VecDeque<WidgetEvent> {
+        let mut messages: VecDeque<WidgetEvent> = VecDeque::new();
+
+        for widget in self.widgets.iter() {
+            widget.interact(interaction, &mut messages);
+        }
+
+        messages
     }
 
     pub fn update(&self) {}
@@ -33,36 +54,29 @@ impl Panel {
     }
 }
 
-pub struct GuiManager {
-    active_panel: Option<Box<Panel>>,
-    panels: Vec<Box<Panel>>,
+pub struct Button {
+    x: f32,
+    y: f32,
+    text: String,
 }
 
-impl GuiManager {
-    pub fn new() -> GuiManager {
-        GuiManager {
-            active_panel: None,
-            panels: Vec::new(),
-        }
+impl Button {
+    pub fn new(x: f32, y: f32, text: String) -> Box<Button> {
+        Box::new(Button { x, y, text })
     }
+}
 
-    pub fn interact(&self, interaction: Buttons) {
-        for panel in self.panels.iter() {
-            panel.interact(interaction);
-        }
-    }
-
-    pub fn update(&self) {
-        for panel in self.panels.iter() {
-            panel.update();
-        }
-    }
-
-    pub fn render(&self, ctx: &mut Context) -> GameResult<()> {
-        for panel in self.panels.iter() {
-            panel.render(ctx)?;
-        }
+impl Renderable for Button {
+    fn render(&self, ctx: &mut Context) -> GameResult<()> {
+        let text = graphics::TextCached::new(self.text.clone())?;
+        text.queue(ctx, graphics::Point2::new(self.x, self.y), None);
 
         Ok(())
+    }
+}
+
+impl Widget for Button {
+    fn interact(&self, interaction: Buttons, messages: &mut VecDeque<WidgetEvent>) {
+        messages.push_back(WidgetEvent::ButtonEvent(ButtonEvent::Clicked));
     }
 }

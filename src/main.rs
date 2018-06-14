@@ -13,7 +13,6 @@ mod app;
 mod assets;
 mod gui;
 mod input;
-mod menu;
 mod screen;
 mod state;
 

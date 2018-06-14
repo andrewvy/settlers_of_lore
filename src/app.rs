@@ -7,16 +7,16 @@ use ggez::{Context, GameResult};
 use warmy;
 
 use assets::{self, Assets};
+use gui::{self, GuiManager};
 use input::{Buttons, ControllerState, InputBinding};
-use menu::Menus;
 use screen::Screen;
 use state::Store;
 
 pub struct AppState {
-    menus: Menus,
     store: Store,
     assets: Assets,
     screen: Screen,
+    gui_manager: GuiManager,
     input_binding: InputBinding,
     controller_state: ControllerState,
     sprite_batch: spritebatch::SpriteBatch,
@@ -44,8 +44,13 @@ impl AppState {
 
         let sprite_batch = spritebatch::SpriteBatch::new((tileset.borrow().0).clone());
 
+        let mut gui_manager = GuiManager::new();
+
+        gui_manager
+            .widgets
+            .push(gui::Button::new(0.0, 150.0, "New GUI Button".to_owned()));
+
         Ok(AppState {
-            menus: Menus::new(),
             store: Store::new(),
             sprite_batch,
             asset_store,
@@ -53,6 +58,7 @@ impl AppState {
             assets,
             input_binding,
             controller_state,
+            gui_manager,
         })
     }
 }
@@ -62,10 +68,10 @@ impl event::EventHandler for AppState {
         const DESIRED_FPS: u32 = 60;
         while timer::check_update_time(ctx, DESIRED_FPS) {}
 
-        if self.controller_state.get_button_pressed(Buttons::Up) {
-            self.menus.up(&mut self.store);
-        } else if self.controller_state.get_button_pressed(Buttons::Down) {
-            self.menus.down(&mut self.store);
+        if self.controller_state.get_button_pressed(Buttons::Action) {
+            let gui_events = self.gui_manager.interact(Buttons::Action);
+
+            println!("{:?}", gui_events);
         }
 
         self.store.update();
@@ -94,8 +100,6 @@ impl event::EventHandler for AppState {
         );
         TextCached::draw_queued(ctx, DrawParam::default())?;
 
-        self.menus.render(&self.store, ctx)?;
-
         let p = DrawParam {
             src: Rect::new(
                 (1.0 / 32.0) * 1.0,
@@ -113,6 +117,8 @@ impl event::EventHandler for AppState {
 
         graphics::draw(ctx, &self.sprite_batch, Point2::new(0.0, 0.0), 0.0)?;
         self.sprite_batch.clear();
+
+        self.gui_manager.render(ctx)?;
 
         graphics::present(ctx);
         timer::yield_now();
