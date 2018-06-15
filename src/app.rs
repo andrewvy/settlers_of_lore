@@ -20,31 +20,15 @@ pub struct AppState {
     gui_manager: GuiManager,
     input_binding: InputBinding,
     controller_state: ControllerState,
-    sprite_batch: spritebatch::SpriteBatch,
     store: Rc<Store>,
-    pub asset_store: warmy::Store<Context>,
 }
 
 impl AppState {
     pub fn new(resource_dir: Option<path::PathBuf>, ctx: &mut Context) -> GameResult<AppState> {
         let screen = Screen::new(ctx)?;
-        let assets = Assets::new(ctx, &screen)?;
+        let assets = Assets::new(resource_dir, ctx, &screen)?;
         let input_binding = InputBinding::new();
         let controller_state = ControllerState::new();
-
-        let resource_pathbuf: path::PathBuf = match resource_dir {
-            Some(s) => s,
-            None => ctx.filesystem.get_resources_dir().to_owned(),
-        };
-
-        let opt = warmy::StoreOpt::default().set_root(resource_pathbuf);
-        let mut asset_store = warmy::Store::new(opt).expect("No asset store?");
-
-        let tileset = asset_store
-            .get::<_, assets::Image>(&warmy::FSKey::new("cb_temple_b.png"), ctx)
-            .unwrap();
-
-        let sprite_batch = spritebatch::SpriteBatch::new((tileset.borrow().0).clone());
 
         let mut gui_manager = GuiManager::new();
 
@@ -55,13 +39,11 @@ impl AppState {
             .push(widgets::menu::Menu::new(0.0, 150.0, 50.0, store.clone()));
 
         Ok(AppState {
-            asset_store,
             assets,
             controller_state,
             gui_manager,
             input_binding,
             screen,
-            sprite_batch,
             store,
         })
     }
@@ -103,24 +85,10 @@ impl event::EventHandler for AppState {
 
         TextCached::draw_queued(ctx, DrawParam::default())?;
 
-        let p = DrawParam {
-            src: Rect::new(
-                (1.0 / 32.0) * 1.0,
-                (1.0 / 35.0) * 1.0,
-                (1.0 / 32.0) * 4.0,
-                (1.0 / 35.0) * 4.0,
-            ),
-            dest: Point2::new(6.0, 32.0),
-            scale: Point2::new(2.0, 2.0),
-            color: Some(Color::new(1.0, 1.0, 1.0, 1.0)),
-            ..Default::default()
-        };
+        self.assets.spritesheet.enqueue(1, 6, Point2::new(6.0, 32.0));
+        graphics::draw(ctx, &self.assets.spritesheet.batch, Point2::new(0.0, 0.0), 0.0)?;
+        self.assets.spritesheet.clear();
 
-        self.sprite_batch.add(p);
-
-        graphics::draw(ctx, &self.sprite_batch, Point2::new(0.0, 0.0), 0.0)?;
-
-        self.sprite_batch.clear();
         self.gui_manager.render(ctx)?;
 
         graphics::present(ctx);

@@ -7,19 +7,32 @@ use ggez::{Context, GameError, GameResult};
 use warmy;
 
 use screen::Screen;
+use spritesheet::SpriteSheet;
 
 pub struct Assets {
     pub font: Font,
     pub default_scale: Scale,
+    pub asset_store: warmy::Store<Context>,
+    pub spritesheet: SpriteSheet,
 }
 
 impl Assets {
-    pub fn new(ctx: &mut Context, screen: &Screen) -> GameResult<Assets> {
-        let font = Font::new_glyph_font(ctx, "/m5x7.ttf")?;
+    pub fn new(resource_dir: Option<path::PathBuf>, ctx: &mut Context, screen: &Screen) -> GameResult<Assets> {
+        let resource_pathbuf: path::PathBuf = match resource_dir {
+            Some(s) => s,
+            None => ctx.filesystem.get_resources_dir().to_owned(),
+        };
+
+        let font = Font::new_glyph_font(ctx, "/fonts/m5x7.ttf")?;
+        let opt = warmy::StoreOpt::default().set_root(resource_pathbuf);
+        let mut asset_store = warmy::Store::new(opt).expect("No asset store?");
+        let spritesheet = SpriteSheet::new("/images/cb_temple_b.png", &mut asset_store, ctx);
 
         Ok(Assets {
             font: font,
             default_scale: Assets::display_independent_scale(screen.scale_w, screen.scale_h, 24.0),
+            asset_store,
+            spritesheet,
         })
     }
 

@@ -3,3 +3,4 @@
 **/*.rs.bk
 *.dll
 *.lib
+**/*.DS_Store
