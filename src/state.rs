@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use std::rc::Rc;
 
 pub enum Action {
     Menus(MenuAction),
@@ -19,12 +20,12 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn new() -> Store {
-        Store {
+    pub fn new() -> Rc<Store> {
+        Rc::new(Store {
             queue: VecDeque::new(),
             selected_menu_item_index: 0,
             menu_stack: vec![0],
-        }
+        })
     }
 
     pub fn dispatch(&mut self, action: Action) {

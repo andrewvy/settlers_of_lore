@@ -15,6 +15,7 @@ mod gui;
 mod input;
 mod screen;
 mod state;
+mod widgets;
 
 use app::AppState;
 

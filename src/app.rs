@@ -1,4 +1,5 @@
 use std::path;
+use std::rc::Rc;
 
 use ggez::event::{self, Keycode, Mod};
 use ggez::graphics::{self, spritebatch, Color, DrawParam, Point2, Rect, TextCached, TextFragment};
@@ -7,19 +8,20 @@ use ggez::{Context, GameResult};
 use warmy;
 
 use assets::{self, Assets};
-use gui::{self, GuiManager};
+use gui::GuiManager;
 use input::{Buttons, ControllerState, InputBinding};
 use screen::Screen;
 use state::Store;
+use widgets;
 
 pub struct AppState {
-    store: Store,
     assets: Assets,
     screen: Screen,
     gui_manager: GuiManager,
     input_binding: InputBinding,
     controller_state: ControllerState,
     sprite_batch: spritebatch::SpriteBatch,
+    store: Rc<Store>,
     pub asset_store: warmy::Store<Context>,
 }
 
@@ -46,19 +48,21 @@ impl AppState {
 
         let mut gui_manager = GuiManager::new();
 
+        let store = Store::new();
+
         gui_manager
             .widgets
-            .push(gui::Button::new(0.0, 150.0, "New GUI Button".to_owned()));
+            .push(widgets::menu::Menu::new(0.0, 150.0, 50.0, store.clone()));
 
         Ok(AppState {
-            store: Store::new(),
-            sprite_batch,
             asset_store,
-            screen,
             assets,
-            input_binding,
             controller_state,
             gui_manager,
+            input_binding,
+            screen,
+            sprite_batch,
+            store,
         })
     }
 }
@@ -74,7 +78,6 @@ impl event::EventHandler for AppState {
             println!("{:?}", gui_events);
         }
 
-        self.store.update();
         self.controller_state.update();
 
         Ok(())
@@ -82,7 +85,6 @@ impl event::EventHandler for AppState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx);
-
         graphics::set_color(ctx, Color::new(0.5, 0.5, 0.5, 1.0))?;
 
         let fps = timer::get_fps(ctx);
@@ -98,6 +100,7 @@ impl event::EventHandler for AppState {
             self.screen.to_screen_coordinates(Point2::new(5.0, 0.0)),
             None,
         );
+
         TextCached::draw_queued(ctx, DrawParam::default())?;
 
         let p = DrawParam {
@@ -116,8 +119,8 @@ impl event::EventHandler for AppState {
         self.sprite_batch.add(p);
 
         graphics::draw(ctx, &self.sprite_batch, Point2::new(0.0, 0.0), 0.0)?;
-        self.sprite_batch.clear();
 
+        self.sprite_batch.clear();
         self.gui_manager.render(ctx)?;
 
         graphics::present(ctx);
