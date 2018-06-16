@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub mod tree;
 pub mod flower;
 
-enum Quality {
+pub enum Quality {
     Perfect,
     Ideal,
     Uncommon,
@@ -12,21 +12,50 @@ enum Quality {
 }
 
 pub struct Plantae<T> {
-    id: u32,
-    name: String,
-    ticks_per_growth: u32,
-    quality: Quality,
-    inner: T,
+    pub id: u32,
+    pub name: String,
+    pub max_growth_level: u32,
+    pub ticks_per_growth: u32,
+    pub quality: Quality,
+    pub inner: T,
 }
 
 pub struct PlantaeInstance<T> {
-    instance: Rc<Plantae<T>>,
-    growth_level: u32,
+    instance_type: Rc<Plantae<T>>,
+    pub ticks: u32,
+    pub growth_level: u32,
+}
+
+impl<T> PlantaeInstance<T> {
+    pub fn new(instance_type: Rc<Plantae<T>>) -> PlantaeInstance<T> {
+        PlantaeInstance {
+            instance_type,
+            ticks: 0,
+            growth_level: 0,
+        }
+    }
+
+    pub fn able_to_be_harvested(&self) -> bool {
+        self.growth_level >= self.instance_type.max_growth_level
+    }
+
+    pub fn tick(&mut self) {
+        if self.growth_level < self.instance_type.max_growth_level {
+            self.ticks += 1;
+        }
+
+        if self.growth_level >= self.instance_type.max_growth_level {
+            self.ticks = 0;
+        } else if (self.ticks >= self.instance_type.ticks_per_growth) {
+            self.ticks = 0;
+            self.growth_level += 1;
+        }
+    }
 }
 
 pub struct PlantaeDictionary {
-    trees: HashMap<u32, Rc<Plantae<tree::Tree>>>,
-    flowers: HashMap<u32, Rc<Plantae<flower::Flower>>>,
+    pub trees: HashMap<u32, Rc<Plantae<tree::Tree>>>,
+    pub flowers: HashMap<u32, Rc<Plantae<flower::Flower>>>,
 }
 
 impl PlantaeDictionary {
@@ -41,5 +70,32 @@ impl PlantaeDictionary {
             trees,
             flowers,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn can_tick_and_grow() {
+        let mut acacia = tree::Tree::new(1, "Acacia hybryda".to_owned());
+        acacia.ticks_per_growth = 1;
+
+        let acacia_type = Rc::new(acacia);
+        let mut acacia_instance = PlantaeInstance::new(acacia_type.clone());
+
+        assert_eq!(acacia_instance.instance_type.ticks_per_growth, 1);
+        assert_eq!(acacia_instance.growth_level, 0);
+
+        acacia_instance.tick();
+
+        assert_eq!(acacia_instance.growth_level, 1);
+
+        for _ in 0..100 {
+            acacia_instance.tick();
+        }
+
+        assert_eq!(acacia_instance.growth_level, acacia_instance.instance_type.max_growth_level);
     }
 }

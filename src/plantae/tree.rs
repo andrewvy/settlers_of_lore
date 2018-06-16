@@ -10,6 +10,7 @@ impl Tree {
             id,
             name,
             ticks_per_growth: 120,
+            max_growth_level: 50,
             quality: Quality::Common,
             inner: Tree {
                 has_bark: true,
