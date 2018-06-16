@@ -75,7 +75,21 @@ impl event::EventHandler for AppState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx);
         graphics::set_color(ctx, Color::new(0.0, 0.0, 0.0, 1.0))?;
-        graphics::draw(ctx, &self.tilemap.batch, Point2::new(0.0, 0.0), 0.0)?;
+
+        let draw_param = DrawParam {
+            src: Rect::new(
+                0.0,
+                0.0,
+                self.screen.screen_w as f32,
+                self.screen.screen_h as f32,
+            ),
+            dest: Point2::new(0.0, 0.0),
+            scale: Point2::new(1.0, 1.0),
+            color: Some(Color::new(1.0, 1.0, 1.0, 1.0)),
+            ..Default::default()
+        };
+
+        graphics::draw_ex(ctx, &self.tilemap.batch, draw_param)?;
 
         let fps = timer::get_fps(ctx);
         let fps_display = TextCached::new(TextFragment {

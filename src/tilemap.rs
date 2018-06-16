@@ -10,8 +10,8 @@ use screen::Screen;
 
 use assets::Image;
 
-const TILE_MAP_WIDTH: usize = 80;
-const TILE_MAP_HEIGHT: usize = 80;
+const TILE_MAP_WIDTH: usize = 65;
+const TILE_MAP_HEIGHT: usize = 45;
 const SPRITE_DIMENSIONS: u32 = 8;
 
 pub struct Tile(SpriteIdx);
