@@ -40,7 +40,12 @@ impl AppState {
             .widgets
             .push(widgets::menu::Menu::new(0.0, 150.0, 50.0, store.clone()));
 
-        let mut tilemap = TileMap::new("/images/cb_temple_b.png", screen, &mut assets.asset_store, ctx);
+        let mut tilemap = TileMap::new(
+            "/images/cb_temple_b.png",
+            screen,
+            &mut assets.asset_store,
+            ctx,
+        );
         tilemap.generate();
 
         Ok(AppState {
