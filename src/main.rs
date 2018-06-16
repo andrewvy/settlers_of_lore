@@ -15,6 +15,7 @@ mod app;
 mod assets;
 mod gui;
 mod input;
+mod plantae;
 mod screen;
 mod state;
 mod tilemap;
