@@ -11,3 +11,7 @@ features = ["bundled"]
 ggez = "0.4"
 warmy = "0.7.2"
 rand = "0.5.1"
+
+[profile.dev]
+opt-level = 2
+incremental = true

@@ -1,10 +1,12 @@
-use rand::{thread_rng, Rng};
+use rand::{thread_rng, Rng, distributions};
 use warmy;
 use warmy::load::Store;
 
 use ggez::graphics::spritebatch::{SpriteBatch, SpriteIdx};
-use ggez::graphics::{self, Color, DrawParam, Point2, Rect};
+use ggez::graphics::{self, Color, DrawParam, Point2, Rect, Scale};
 use ggez::Context;
+
+use screen::Screen;
 
 use assets::Image;
 
@@ -19,11 +21,13 @@ pub struct TileMap {
     tiles_width: u32,
     tiles_height: u32,
     tiles: Vec<Tile>,
+    scale: Point2,
+    screen: Screen,
     pub batch: SpriteBatch,
 }
 
 impl TileMap {
-    pub fn new(path: &str, asset_store: &mut Store<Context>, ctx: &mut Context) -> TileMap {
+    pub fn new(path: &str, screen: Screen, asset_store: &mut Store<Context>, ctx: &mut Context) -> TileMap {
         let image = asset_store
             .get::<_, Image>(&warmy::FSKey::new(path), ctx)
             .unwrap();
@@ -35,6 +39,8 @@ impl TileMap {
             tiles_height: inner.height() / SPRITE_DIMENSIONS,
             tiles: Vec::with_capacity(TILE_MAP_HEIGHT * TILE_MAP_WIDTH),
             batch: SpriteBatch::new(inner.clone()),
+            scale: Point2::new(screen.scale_w, screen.scale_h),
+            screen,
         }
     }
 
@@ -45,8 +51,21 @@ impl TileMap {
             let x: usize = (i % TILE_MAP_WIDTH) * SPRITE_DIMENSIONS as usize;
             let y: usize = (i / TILE_MAP_WIDTH) * SPRITE_DIMENSIONS as usize;
 
-            let sprite_x: u32 = rng.gen_range(3, 5);
-            let sprite_y: u32 = rng.gen_range(3, 5);
+            let tile_range = distributions::Uniform::new_inclusive(1, 100);
+
+            let mut sprite_y = 3;
+            let mut sprite_x = 2;
+
+            match rng.sample(&tile_range) {
+                98 | 99 => {
+                    sprite_x = 3;
+                },
+                100 => {
+                    sprite_x = 2;
+                    sprite_y = 2;
+                },
+                _ => {}
+            }
 
             let draw_param = DrawParam {
                 src: Rect::new(
@@ -55,8 +74,8 @@ impl TileMap {
                     1.0 / self.tiles_width as f32,
                     1.0 / self.tiles_height as f32,
                 ),
-                dest: Point2::new(x as f32, y as f32),
-                scale: Point2::new(1.0, 1.0),
+                dest: self.screen.to_screen_coordinates(Point2::new(x as f32, y as f32)),
+                scale: self.scale,
                 color: Some(Color::new(1.0, 1.0, 1.0, 1.0)),
                 ..Default::default()
             };

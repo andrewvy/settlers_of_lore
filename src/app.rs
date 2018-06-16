@@ -40,7 +40,7 @@ impl AppState {
             .widgets
             .push(widgets::menu::Menu::new(0.0, 150.0, 50.0, store.clone()));
 
-        let mut tilemap = TileMap::new("/images/cb_temple_b.png", &mut assets.asset_store, ctx);
+        let mut tilemap = TileMap::new("/images/cb_temple_b.png", screen, &mut assets.asset_store, ctx);
         tilemap.generate();
 
         Ok(AppState {
@@ -74,7 +74,8 @@ impl event::EventHandler for AppState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx);
-        graphics::set_color(ctx, Color::new(0.5, 0.5, 0.5, 1.0))?;
+        graphics::set_color(ctx, Color::new(0.0, 0.0, 0.0, 1.0))?;
+        graphics::draw(ctx, &self.tilemap.batch, Point2::new(0.0, 0.0), 0.0)?;
 
         let fps = timer::get_fps(ctx);
         let fps_display = TextCached::new(TextFragment {
@@ -91,8 +92,6 @@ impl event::EventHandler for AppState {
         );
 
         TextCached::draw_queued(ctx, DrawParam::default())?;
-
-        graphics::draw(ctx, &self.tilemap.batch, Point2::new(0.0, 35.0), 0.0)?;
 
         self.gui_manager.render(ctx)?;
 

@@ -1,6 +1,7 @@
 use ggez::graphics;
 use ggez::{Context, GameResult};
 
+#[derive(Debug, Copy, Clone)]
 pub struct Screen {
     pub logical_w: u32,
     pub logical_h: u32,
