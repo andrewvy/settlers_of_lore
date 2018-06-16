@@ -12,6 +12,7 @@ use gui::GuiManager;
 use input::{Buttons, ControllerState, InputBinding};
 use screen::Screen;
 use state::Store;
+use tilemap::TileMap;
 use widgets;
 
 pub struct AppState {
@@ -21,12 +22,13 @@ pub struct AppState {
     input_binding: InputBinding,
     controller_state: ControllerState,
     store: Rc<Store>,
+    tilemap: TileMap,
 }
 
 impl AppState {
     pub fn new(resource_dir: Option<path::PathBuf>, ctx: &mut Context) -> GameResult<AppState> {
         let screen = Screen::new(ctx)?;
-        let assets = Assets::new(resource_dir, ctx, &screen)?;
+        let mut assets = Assets::new(resource_dir, ctx, &screen)?;
         let input_binding = InputBinding::new();
         let controller_state = ControllerState::new();
 
@@ -38,6 +40,9 @@ impl AppState {
             .widgets
             .push(widgets::menu::Menu::new(0.0, 150.0, 50.0, store.clone()));
 
+        let mut tilemap = TileMap::new("/images/cb_temple_b.png", &mut assets.asset_store, ctx);
+        tilemap.generate();
+
         Ok(AppState {
             assets,
             controller_state,
@@ -45,6 +50,7 @@ impl AppState {
             input_binding,
             screen,
             store,
+            tilemap,
         })
     }
 }
@@ -52,15 +58,16 @@ impl AppState {
 impl event::EventHandler for AppState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         const DESIRED_FPS: u32 = 60;
-        while timer::check_update_time(ctx, DESIRED_FPS) {}
 
-        if self.controller_state.get_button_pressed(Buttons::Action) {
-            let gui_events = self.gui_manager.interact(Buttons::Action);
+        while timer::check_update_time(ctx, DESIRED_FPS) {
+            if self.controller_state.get_button_pressed(Buttons::Action) {
+                let gui_events = self.gui_manager.interact(Buttons::Action);
 
-            println!("{:?}", gui_events);
+                println!("{:?}", gui_events);
+            }
+
+            self.controller_state.update();
         }
-
-        self.controller_state.update();
 
         Ok(())
     }
@@ -85,9 +92,7 @@ impl event::EventHandler for AppState {
 
         TextCached::draw_queued(ctx, DrawParam::default())?;
 
-        self.assets.spritesheet.enqueue(1, 6, Point2::new(6.0, 32.0));
-        graphics::draw(ctx, &self.assets.spritesheet.batch, Point2::new(0.0, 0.0), 0.0)?;
-        self.assets.spritesheet.clear();
+        graphics::draw(ctx, &self.tilemap.batch, Point2::new(0.0, 35.0), 0.0)?;
 
         self.gui_manager.render(ctx)?;
 

@@ -1,6 +1,7 @@
 #![windows_subsystem = "windows"]
 
 extern crate ggez;
+extern crate rand;
 extern crate warmy;
 
 use std::path;
@@ -8,6 +9,7 @@ use std::path;
 use ggez::conf::{WindowMode, WindowSetup};
 use ggez::event;
 use ggez::ContextBuilder;
+use rand::prelude::*;
 
 mod app;
 mod assets;
@@ -15,7 +17,7 @@ mod gui;
 mod input;
 mod screen;
 mod state;
-mod spritesheet;
+mod tilemap;
 mod widgets;
 
 use app::AppState;
