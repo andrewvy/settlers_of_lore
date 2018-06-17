@@ -9,7 +9,6 @@ impl Flower {
             name,
             ticks_per_growth: 120,
             max_growth_level: 10,
-            quality: Quality::Common,
             inner: Flower {},
         }
     }

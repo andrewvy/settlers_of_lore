@@ -10,6 +10,7 @@ use warmy;
 use assets::{self, Assets};
 use gui::GuiManager;
 use input::{Buttons, ControllerState, InputBinding};
+use plantae::PlantaeDictionary;
 use screen::Screen;
 use state::Store;
 use tilemap::TileMap;
@@ -21,6 +22,7 @@ pub struct AppState {
     gui_manager: GuiManager,
     input_binding: InputBinding,
     controller_state: ControllerState,
+    plantae_dictionary: PlantaeDictionary,
     store: Rc<Store>,
     tilemap: TileMap,
 }
@@ -46,13 +48,17 @@ impl AppState {
             &mut assets.asset_store,
             ctx,
         );
+
         tilemap.generate();
+
+        let plantae_dictionary = PlantaeDictionary::new();
 
         Ok(AppState {
             assets,
             controller_state,
             gui_manager,
             input_binding,
+            plantae_dictionary,
             screen,
             store,
             tilemap,

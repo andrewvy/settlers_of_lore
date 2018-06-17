@@ -16,7 +16,6 @@ pub struct Plantae<T> {
     pub name: String,
     pub max_growth_level: u32,
     pub ticks_per_growth: u32,
-    pub quality: Quality,
     pub inner: T,
 }
 
@@ -24,6 +23,7 @@ pub struct PlantaeInstance<T> {
     instance_type: Rc<Plantae<T>>,
     pub ticks: u32,
     pub growth_level: u32,
+    pub quality: Quality,
 }
 
 impl<T> PlantaeInstance<T> {
@@ -32,6 +32,7 @@ impl<T> PlantaeInstance<T> {
             instance_type,
             ticks: 0,
             growth_level: 0,
+            quality: Quality::Common,
         }
     }
 
