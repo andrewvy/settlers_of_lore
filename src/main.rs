@@ -20,6 +20,7 @@ mod screen;
 mod state;
 mod tilemap;
 mod widgets;
+mod processables;
 
 use app::AppState;
 
