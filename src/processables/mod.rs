@@ -1,4 +1,6 @@
+pub mod bark;
 pub mod fruit;
+pub mod leaf;
 pub mod oil;
 
 pub struct Processable<T> {
