@@ -1,6 +1,7 @@
 use std::rc::Rc;
 use std::collections::HashMap;
 
+pub mod growth;
 pub mod tree;
 pub mod flower;
 
@@ -16,6 +17,7 @@ pub struct Plantae<T> {
     pub name: String,
     pub max_growth_level: u32,
     pub ticks_per_growth: u32,
+    pub growth_parameters: growth::GrowthParameters,
     pub inner: T,
 }
 
@@ -63,9 +65,16 @@ impl PlantaeDictionary {
     pub fn new() -> PlantaeDictionary {
         let mut trees = HashMap::new();
         let mut flowers = HashMap::new();
+        let tree = tree::Tree::new(1, "Acacia hybryda".to_owned());
+        let flower = flower::Flower::new(1, "Cosmos bipinnatus".to_owned());
 
-        trees.insert(1, Rc::new(tree::Tree::new(1, "Acacia hybryda".to_owned())));
-        flowers.insert(1, Rc::new(flower::Flower::new(1, "Cosmos bipinnatus".to_owned())));
+        let tree_weight = tree.growth_parameters.weight(25.0);
+        let tree_max_rate = tree.growth_parameters.max_growth_rate();
+
+        println!("tree_weight {}, tree_max_rate {}", tree_weight, tree_max_rate);
+
+        trees.insert(1, Rc::new(tree));
+        flowers.insert(1, Rc::new(flower));
 
         PlantaeDictionary {
             trees,
