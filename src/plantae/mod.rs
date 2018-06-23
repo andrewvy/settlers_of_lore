@@ -24,7 +24,6 @@ pub struct Plantae<T> {
 pub struct PlantaeInstance<T> {
     instance_type: Rc<Plantae<T>>,
     pub ticks: u32,
-    pub growth_level: u32,
     pub quality: Quality,
 }
 
@@ -33,26 +32,12 @@ impl<T> PlantaeInstance<T> {
         PlantaeInstance {
             instance_type,
             ticks: 0,
-            growth_level: 0,
             quality: Quality::Common,
         }
     }
 
-    pub fn able_to_be_harvested(&self) -> bool {
-        self.growth_level >= self.instance_type.max_growth_level
-    }
-
     pub fn tick(&mut self) {
-        if self.growth_level < self.instance_type.max_growth_level {
-            self.ticks += 1;
-        }
-
-        if self.growth_level >= self.instance_type.max_growth_level {
-            self.ticks = 0;
-        } else if (self.ticks >= self.instance_type.ticks_per_growth) {
-            self.ticks = 0;
-            self.growth_level += 1;
-        }
+        self.ticks += 1;
     }
 }
 
@@ -104,9 +89,4 @@ impl PlantaeDictionary {
             flowers,
         }
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }
