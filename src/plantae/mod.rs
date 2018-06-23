@@ -17,7 +17,7 @@ pub struct Plantae<T> {
     pub name: String,
     pub max_growth_level: u32,
     pub ticks_per_growth: u32,
-    pub growth_parameters: growth::GrowthParameters,
+    pub growth_model: growth::GrowthModel,
     pub inner: T,
 }
 
@@ -68,10 +68,33 @@ impl PlantaeDictionary {
         let tree = tree::Tree::new(1, "Acacia hybryda".to_owned());
         let flower = flower::Flower::new(1, "Cosmos bipinnatus".to_owned());
 
-        let tree_weight = tree.growth_parameters.weight(25.0);
-        let tree_max_rate = tree.growth_parameters.max_growth_rate();
+        let tree_max_rate = tree.growth_model.max_growth_rate;
+        let ticks_when_growing = tree.growth_model.tick_mid / 3.0;
+        let ticks_when_harvestable = tree.growth_model.tick_mid + (tree.growth_model.tick_end - tree.growth_model.tick_mid) / 2.0;
+        let ticks_when_decay = tree.growth_model.tick_end + (tree.growth_model.tick_end - tree.growth_model.tick_mid) / 2.0;
 
-        println!("tree_weight {}, tree_max_rate {}", tree_weight, tree_max_rate);
+        let mut i = 0;
+
+        while i <= 120 {
+            let tick = i as f64;
+            let tree_weight = tree.growth_model.weight(tick);
+
+            let mut state = "growing";
+
+            if (tick < ticks_when_growing) {
+                state = "sprouting";
+            } else if (tick >= ticks_when_growing) && (tick < ticks_when_harvestable) {
+                state = "growing"
+            } else if (tick >= ticks_when_harvestable) && (tick < ticks_when_decay) {
+                state = "harvestable";
+            } else if (tick >= ticks_when_decay) {
+                state = "decaying";
+            }
+
+            println!("state: {}, tick: {}, plant_weight: {:2.2}g", state, tick, tree_weight);
+
+            i += 2;
+        }
 
         trees.insert(1, Rc::new(tree));
         flowers.insert(1, Rc::new(flower));
@@ -86,26 +109,4 @@ impl PlantaeDictionary {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn can_tick_and_grow() {
-        let mut acacia = tree::Tree::new(1, "Acacia hybryda".to_owned());
-        acacia.ticks_per_growth = 1;
-
-        let acacia_type = Rc::new(acacia);
-        let mut acacia_instance = PlantaeInstance::new(acacia_type.clone());
-
-        assert_eq!(acacia_instance.instance_type.ticks_per_growth, 1);
-        assert_eq!(acacia_instance.growth_level, 0);
-
-        acacia_instance.tick();
-
-        assert_eq!(acacia_instance.growth_level, 1);
-
-        for _ in 0..100 {
-            acacia_instance.tick();
-        }
-
-        assert_eq!(acacia_instance.growth_level, acacia_instance.instance_type.max_growth_level);
-    }
 }

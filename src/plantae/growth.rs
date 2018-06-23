@@ -1,17 +1,29 @@
-pub struct GrowthParameters {
+pub struct GrowthModel {
     pub tick_mid: f64,
     pub tick_end: f64,
     pub max_weight: f64,
+    pub max_growth_rate: f64,
 }
 
-impl GrowthParameters {
-    pub fn max_growth_rate(&self) -> f64 {
-        let a = ((2. * self.tick_end) - self.tick_mid);
-        let b = self.tick_end * (self.tick_end - self.tick_mid);
-        let c = self.tick_mid / self.tick_end;
-        let d = self.tick_mid / (self.tick_end - self.tick_mid);
+impl GrowthModel {
+    pub fn new(tick_mid: f64, tick_end: f64, max_weight: f64) -> GrowthModel {
+        let max_growth_rate = GrowthModel::max_growth_rate(tick_mid, tick_end, max_weight);
 
-        return (a / b) * c.powf(d) * self.max_weight;
+        GrowthModel {
+            tick_mid,
+            tick_end,
+            max_weight,
+            max_growth_rate,
+        }
+    }
+
+    pub fn max_growth_rate(tick_mid: f64, tick_end: f64, max_weight: f64) -> f64 {
+        let a = ((2. * tick_end) - tick_mid);
+        let b = tick_end * (tick_end - tick_mid);
+        let c = tick_mid / tick_end;
+        let d = tick_mid / (tick_end - tick_mid);
+
+        return (a / b) * c.powf(d) * max_weight;
     }
 
     pub fn weight(&self, tick: f64) -> f64 {
