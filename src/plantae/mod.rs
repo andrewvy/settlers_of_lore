@@ -53,7 +53,6 @@ impl PlantaeDictionary {
         let tree = tree::Tree::new(1, "Acacia hybryda".to_owned());
         let flower = flower::Flower::new(1, "Cosmos bipinnatus".to_owned());
 
-        let tree_max_rate = tree.growth_model.max_growth_rate;
         let ticks_when_growing = tree.growth_model.tick_mid / 3.0;
         let ticks_when_harvestable = tree.growth_model.tick_mid + (tree.growth_model.tick_end - tree.growth_model.tick_mid) / 2.0;
         let ticks_when_decay = tree.growth_model.tick_end + (tree.growth_model.tick_end - tree.growth_model.tick_mid) / 2.0;
@@ -66,13 +65,13 @@ impl PlantaeDictionary {
 
             let mut state = "growing";
 
-            if (tick < ticks_when_growing) {
+            if tick < ticks_when_growing {
                 state = "sprouting";
             } else if (tick >= ticks_when_growing) && (tick < ticks_when_harvestable) {
                 state = "growing"
             } else if (tick >= ticks_when_harvestable) && (tick < ticks_when_decay) {
                 state = "harvestable";
-            } else if (tick >= ticks_when_decay) {
+            } else if tick >= ticks_when_decay {
                 state = "decaying";
             }
 

@@ -38,5 +38,5 @@ impl Renderable for Menu {
 }
 
 impl Widget for Menu {
-    fn interact(&self, interaction: Buttons, messages: &mut VecDeque<WidgetEvent>) {}
+    fn interact(&self, _interaction: Buttons, _messages: &mut VecDeque<WidgetEvent>) {}
 }

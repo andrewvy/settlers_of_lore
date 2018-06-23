@@ -1,6 +1,4 @@
-use std::cell::RefCell;
 use std::collections::VecDeque;
-use std::rc::Rc;
 
 use ggez::graphics;
 use ggez::{Context, GameResult};
@@ -79,7 +77,7 @@ impl Renderable for Button {
 }
 
 impl Widget for Button {
-    fn interact(&self, interaction: Buttons, messages: &mut VecDeque<WidgetEvent>) {
+    fn interact(&self, _interaction: Buttons, messages: &mut VecDeque<WidgetEvent>) {
         messages.push_back(WidgetEvent::ButtonEvent(ButtonEvent::Clicked));
     }
 }

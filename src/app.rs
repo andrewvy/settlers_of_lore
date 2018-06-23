@@ -2,12 +2,11 @@ use std::path;
 use std::rc::Rc;
 
 use ggez::event::{self, Keycode, Mod};
-use ggez::graphics::{self, spritebatch, Color, DrawParam, Point2, Rect, TextCached, TextFragment};
+use ggez::graphics::{self, Color, DrawParam, Point2, Rect, TextCached, TextFragment};
 use ggez::timer;
 use ggez::{Context, GameResult};
-use warmy;
 
-use assets::{self, Assets};
+use assets::{Assets};
 use gui::GuiManager;
 use input::{Buttons, ControllerState, InputBinding};
 use plantae::PlantaeDictionary;

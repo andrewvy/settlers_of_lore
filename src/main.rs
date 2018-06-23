@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 #![windows_subsystem = "windows"]
 
 extern crate ggez;
@@ -9,7 +10,6 @@ use std::path;
 use ggez::conf::{WindowMode, WindowSetup};
 use ggez::event;
 use ggez::ContextBuilder;
-use rand::prelude::*;
 
 mod app;
 mod assets;

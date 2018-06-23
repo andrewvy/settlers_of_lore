@@ -18,7 +18,7 @@ impl GrowthModel {
     }
 
     pub fn max_growth_rate(tick_mid: f64, tick_end: f64, max_weight: f64) -> f64 {
-        let a = ((2. * tick_end) - tick_mid);
+        let a = (2. * tick_end) - tick_mid;
         let b = tick_end * (tick_end - tick_mid);
         let c = tick_mid / tick_end;
         let d = tick_mid / (tick_end - tick_mid);

@@ -3,7 +3,7 @@ use warmy;
 use warmy::load::Store;
 
 use ggez::graphics::spritebatch::{SpriteBatch, SpriteIdx};
-use ggez::graphics::{self, Color, DrawParam, Point2, Rect, Scale};
+use ggez::graphics::{Color, DrawParam, Point2, Rect};
 use ggez::Context;
 
 use screen::Screen;

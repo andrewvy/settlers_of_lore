@@ -1,4 +1,4 @@
-use plantae::{Plantae, Quality};
+use plantae::{Plantae};
 use plantae::growth::GrowthModel;
 
 pub struct Flower {}
