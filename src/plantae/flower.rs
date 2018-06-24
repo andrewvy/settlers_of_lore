@@ -8,8 +8,6 @@ impl Flower {
         Plantae {
             id,
             name,
-            ticks_per_growth: 120,
-            max_growth_level: 10,
             growth_model: GrowthModel::new(60.0, 100.0, 500.0),
             inner: Flower {},
         }

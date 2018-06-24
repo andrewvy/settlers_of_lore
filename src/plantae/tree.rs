@@ -14,8 +14,6 @@ impl Tree {
         Plantae {
             id,
             name: generated_name,
-            ticks_per_growth: 120,
-            max_growth_level: 50,
             growth_model: GrowthModel::new(40.0, 80.0, 500.0),
             inner: Tree {
                 has_bark: true,
