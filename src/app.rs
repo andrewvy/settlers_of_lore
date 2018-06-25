@@ -14,16 +14,18 @@ use screen::Screen;
 use state::Store;
 use tilemap::TileMap;
 use widgets;
+use world::World;
 
 pub struct AppState {
     assets: Assets,
-    screen: Screen,
+    controller_state: ControllerState,
     gui_manager: GuiManager,
     input_binding: InputBinding,
-    controller_state: ControllerState,
     plantae_dictionary: PlantaeDictionary,
+    screen: Screen,
     store: Rc<Store>,
     tilemap: TileMap,
+    world: World,
 }
 
 impl AppState {
@@ -52,6 +54,8 @@ impl AppState {
 
         let plantae_dictionary = PlantaeDictionary::new();
 
+        let world = World::new();
+
         Ok(AppState {
             assets,
             controller_state,
@@ -61,6 +65,7 @@ impl AppState {
             screen,
             store,
             tilemap,
+            world,
         })
     }
 }

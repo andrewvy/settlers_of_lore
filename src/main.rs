@@ -3,6 +3,7 @@
 
 extern crate ggez;
 extern crate rand;
+extern crate specs;
 extern crate warmy;
 
 use std::path;
@@ -13,14 +14,16 @@ use ggez::ContextBuilder;
 
 mod app;
 mod assets;
+mod components;
 mod gui;
 mod input;
 mod plantae;
+mod processables;
 mod screen;
 mod state;
 mod tilemap;
 mod widgets;
-mod processables;
+mod world;
 
 use app::AppState;
 
