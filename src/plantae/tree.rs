@@ -31,8 +31,8 @@ impl Tree {
         };
 
         let tree_names: Vec<&str> = tree_name_buffer.split('\n').collect();
-        let tree_name = thread_rng().choose(&tree_names);
+        let tree_name = thread_rng().choose(&tree_names).expect("Could not generate random name");
 
-        tree_name.expect("Could not generate random name").to_owned().to_owned()
+        (*tree_name).to_owned()
     }
 }
