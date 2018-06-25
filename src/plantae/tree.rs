@@ -1,5 +1,7 @@
 use std::str;
 
+use rand::{thread_rng, Rng};
+
 use plantae::{Plantae};
 use plantae::growth::GrowthModel;
 
@@ -23,13 +25,14 @@ impl Tree {
 
     pub fn generate_name() -> String {
         let buffer = include_bytes!("../../resources/data/trees.txt");
-        let tree_names = match str::from_utf8(buffer) {
+        let tree_name_buffer = match str::from_utf8(buffer) {
             Ok(v) => v,
             Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
         };
 
-        let mut iter = tree_names.split('\n');
+        let tree_names: Vec<&str> = tree_name_buffer.split('\n').collect();
+        let tree_name = thread_rng().choose(&tree_names);
 
-        iter.nth(0).unwrap().to_owned()
+        tree_name.expect("Could not generate random name").to_owned().to_owned()
     }
 }
