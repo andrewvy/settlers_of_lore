@@ -2,7 +2,7 @@ use std::path;
 use std::rc::Rc;
 
 use ggez::event::{self, Keycode, Mod};
-use ggez::graphics::{self, Color, DrawParam, Point2, Rect, TextCached, TextFragment};
+use ggez::graphics::{self, Color, DrawParam, Point2, TextCached, TextFragment};
 use ggez::timer;
 use ggez::{Context, GameResult};
 
@@ -24,7 +24,6 @@ pub struct AppState {
     plantae_dictionary: PlantaeDictionary,
     screen: Screen,
     store: Rc<Store>,
-    tilemap: TileMap,
     world: World,
 }
 
@@ -43,14 +42,12 @@ impl AppState {
             .widgets
             .push(widgets::menu::Menu::new(0.0, 150.0, 50.0, store.clone()));
 
-        let mut tilemap = TileMap::new(
+        let _tilemap = TileMap::new(
             "/images/cb_temple_b.png",
             screen,
             &mut assets.asset_store,
             ctx,
         );
-
-        tilemap.generate();
 
         let plantae_dictionary = PlantaeDictionary::new();
 
@@ -64,7 +61,6 @@ impl AppState {
             plantae_dictionary,
             screen,
             store,
-            tilemap,
             world,
         })
     }
@@ -90,21 +86,6 @@ impl event::EventHandler for AppState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx);
         graphics::set_color(ctx, Color::new(0.0, 0.0, 0.0, 1.0))?;
-
-        let draw_param = DrawParam {
-            src: Rect::new(
-                0.0,
-                0.0,
-                self.screen.screen_w as f32,
-                self.screen.screen_h as f32,
-            ),
-            dest: Point2::new(0.0, 0.0),
-            scale: Point2::new(1.0, 1.0),
-            color: Some(Color::new(1.0, 1.0, 1.0, 1.0)),
-            ..Default::default()
-        };
-
-        graphics::draw_ex(ctx, &self.tilemap.batch, draw_param)?;
 
         let fps = timer::get_fps(ctx);
         let fps_display = TextCached::new(TextFragment {

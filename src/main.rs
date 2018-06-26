@@ -15,6 +15,7 @@ use ggez::ContextBuilder;
 mod app;
 mod assets;
 mod components;
+mod entities;
 mod gui;
 mod input;
 mod plantae;
