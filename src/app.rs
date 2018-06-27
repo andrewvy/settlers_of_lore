@@ -6,13 +6,13 @@ use ggez::graphics::{self, Color, DrawParam, Point2, TextCached, TextFragment};
 use ggez::timer;
 use ggez::{Context, GameResult};
 
-use assets::{Assets};
+use assets::Assets;
 use gui::GuiManager;
 use input::{Buttons, ControllerState, InputBinding};
 use plantae::PlantaeDictionary;
 use screen::Screen;
 use state::Store;
-use tilemap::TileMap;
+use tilemap::{SpriteLayer, TileMap};
 use widgets;
 use world::World;
 
@@ -25,6 +25,7 @@ pub struct AppState {
     screen: Screen,
     store: Rc<Store>,
     world: World,
+    sprite_layers: Vec<SpriteLayer>,
 }
 
 impl AppState {
@@ -33,25 +34,25 @@ impl AppState {
         let mut assets = Assets::new(resource_dir, ctx, &screen)?;
         let input_binding = InputBinding::new();
         let controller_state = ControllerState::new();
-
+        let plantae_dictionary = PlantaeDictionary::new();
+        let world = World::new();
         let mut gui_manager = GuiManager::new();
-
         let store = Store::new();
 
         gui_manager
             .widgets
             .push(widgets::menu::Menu::new(0.0, 150.0, 50.0, store.clone()));
 
-        let _tilemap = TileMap::new(
+        let tilemap = TileMap::new(
             "/images/cb_temple_b.png",
             screen,
             &mut assets.asset_store,
             ctx,
+            8,
         );
 
-        let plantae_dictionary = PlantaeDictionary::new();
-
-        let world = World::new();
+        let background_layer = SpriteLayer::new(&tilemap);
+        let sprite_layers = vec![background_layer];
 
         Ok(AppState {
             assets,
@@ -62,6 +63,7 @@ impl AppState {
             screen,
             store,
             world,
+            sprite_layers,
         })
     }
 }

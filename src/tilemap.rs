@@ -1,19 +1,11 @@
+use ggez::graphics::spritebatch::SpriteBatch;
+use ggez::graphics::Point2;
+use ggez::Context;
 use warmy;
 use warmy::load::Store;
 
-use ggez::graphics::spritebatch::{SpriteBatch, SpriteIdx};
-use ggez::graphics::{Point2};
-use ggez::Context;
-
-use screen::Screen;
-
 use assets::Image;
-
-const TILE_MAP_WIDTH: usize = 65;
-const TILE_MAP_HEIGHT: usize = 45;
-const SPRITE_DIMENSIONS: u32 = 8;
-
-pub struct Tile(SpriteIdx);
+use screen::Screen;
 
 pub struct TileMap {
     sprite_dimensions: u32,
@@ -23,7 +15,7 @@ pub struct TileMap {
     num_tiles_y: u32,
     scale: Point2,
     screen: Screen,
-    pub batch: SpriteBatch,
+    image: warmy::Res<Image>,
 }
 
 impl TileMap {
@@ -32,28 +24,39 @@ impl TileMap {
         screen: Screen,
         asset_store: &mut Store<Context>,
         ctx: &mut Context,
-    ) -> TileMap {
+        sprite_dimensions: u32,
+    ) -> Self {
         let image = asset_store
             .get::<_, Image>(&warmy::FSKey::new(path), ctx)
             .unwrap();
-        let inner = &image.borrow().0;
+        let inner = image.borrow().0.clone();
 
-        let num_tiles_x: u32 = (screen.screen_w / SPRITE_DIMENSIONS) + 1;
-        let num_tiles_y: u32 = (screen.screen_h / SPRITE_DIMENSIONS) + 1;
+        let num_tiles_x: u32 = (screen.screen_w / sprite_dimensions) + 1;
+        let num_tiles_y: u32 = (screen.screen_h / sprite_dimensions) + 1;
 
         TileMap {
-            sprite_dimensions: SPRITE_DIMENSIONS,
-            tile_width: inner.width() / SPRITE_DIMENSIONS,
-            tile_height: inner.height() / SPRITE_DIMENSIONS,
+            sprite_dimensions,
+            tile_width: inner.width() / sprite_dimensions,
+            tile_height: inner.height() / sprite_dimensions,
             num_tiles_x,
             num_tiles_y,
-            batch: SpriteBatch::new(inner.clone()),
             scale: Point2::new(screen.scale_w, screen.scale_h),
             screen,
+            image,
         }
     }
+}
 
-    pub fn clear(&mut self) {
-        self.batch.clear();
+pub struct SpriteLayer {
+    pub batch: SpriteBatch,
+}
+
+impl SpriteLayer {
+    pub fn new(tilemap: &TileMap) -> Self {
+        let image = tilemap.image.borrow().0.clone();
+
+        SpriteLayer {
+            batch: SpriteBatch::new(image),
+        }
     }
 }
