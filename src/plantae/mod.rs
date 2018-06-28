@@ -1,9 +1,9 @@
-use std::rc::Rc;
 use std::collections::HashMap;
+use std::rc::Rc;
 
+pub mod flower;
 pub mod growth;
 pub mod tree;
-pub mod flower;
 
 pub enum Quality {
     Perfect,
@@ -50,8 +50,10 @@ pub struct PlantaeInstance<T> {
 impl<T> PlantaeInstance<T> {
     pub fn new(instance_type: Rc<Plantae<T>>) -> PlantaeInstance<T> {
         let ticks_until_growing = instance_type.growth_model.tick_mid / 3.0;
-        let ticks_until_harvestable = instance_type.growth_model.tick_mid + (instance_type.growth_model.tick_end - instance_type.growth_model.tick_mid) / 2.0;
-        let ticks_until_decay = instance_type.growth_model.tick_end + (instance_type.growth_model.tick_end - instance_type.growth_model.tick_mid) / 2.0;
+        let ticks_until_harvestable = instance_type.growth_model.tick_mid
+            + (instance_type.growth_model.tick_end - instance_type.growth_model.tick_mid) / 2.0;
+        let ticks_until_decay = instance_type.growth_model.tick_end
+            + (instance_type.growth_model.tick_end - instance_type.growth_model.tick_mid) / 2.0;
 
         PlantaeInstance {
             instance_type,
@@ -71,15 +73,17 @@ impl<T> PlantaeInstance<T> {
 
         if self.ticks < self.ticks_until_growing {
             self.state = GrowthState::Sprouting;
-        } else if (self.ticks >= self.ticks_until_growing) && (self.ticks < self.ticks_until_harvestable) {
+        } else if (self.ticks >= self.ticks_until_growing)
+            && (self.ticks < self.ticks_until_harvestable)
+        {
             self.state = GrowthState::Growing;
-        } else if (self.ticks >= self.ticks_until_harvestable) && (self.ticks < self.ticks_until_decay) {
+        } else if (self.ticks >= self.ticks_until_harvestable)
+            && (self.ticks < self.ticks_until_decay)
+        {
             self.state = GrowthState::Harvestable;
         } else if self.ticks >= self.ticks_until_decay {
             self.state = GrowthState::Decaying;
         }
-
-        println!("state: {:?}, tick: {}, plant_weight: {:2.2}g", self.state, self.ticks, self.weight);
     }
 }
 
@@ -95,18 +99,9 @@ impl PlantaeDictionary {
         let tree = Rc::new(tree::Tree::new(1, "Acacia hybryda".to_owned()));
         let flower = Rc::new(flower::Flower::new(1, "Cosmos bipinnatus".to_owned()));
 
-        let mut acacia_sapling = PlantaeInstance::new(tree.clone());
-
-        for _i in 1..100 {
-            acacia_sapling.tick();
-        }
-
         trees.insert(1, tree);
         flowers.insert(1, flower);
 
-        PlantaeDictionary {
-            trees,
-            flowers,
-        }
+        PlantaeDictionary { trees, flowers }
     }
 }

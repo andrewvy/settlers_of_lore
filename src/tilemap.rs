@@ -1,5 +1,5 @@
-use ggez::graphics::spritebatch::SpriteBatch;
-use ggez::graphics::Point2;
+use ggez::graphics::spritebatch::{SpriteBatch, SpriteIdx};
+use ggez::graphics::{Color, DrawParam, Point2, Rect};
 use ggez::Context;
 use warmy;
 use warmy::load::Store;
@@ -7,6 +7,15 @@ use warmy::load::Store;
 use assets::Image;
 use screen::Screen;
 
+#[derive(Hash, Eq, PartialEq)]
+pub struct Tile {
+    pub sprite_layer: i32,
+    pub sprite_id: i32,
+    pub x: i32,
+    pub y: i32,
+}
+
+#[derive(Clone)]
 pub struct TileMap {
     sprite_dimensions: u32,
     tile_width: u32,
@@ -48,15 +57,46 @@ impl TileMap {
 }
 
 pub struct SpriteLayer {
+    tilemap: TileMap,
     pub batch: SpriteBatch,
 }
 
 impl SpriteLayer {
-    pub fn new(tilemap: &TileMap) -> Self {
+    pub fn new(tilemap: TileMap) -> Self {
         let image = tilemap.image.borrow().0.clone();
 
         SpriteLayer {
+            tilemap,
             batch: SpriteBatch::new(image),
         }
+    }
+
+    pub fn add(&mut self, tile: &Tile) -> SpriteIdx {
+        let x: usize = tile.x as usize * self.tilemap.sprite_dimensions as usize;
+        let y: usize = tile.y as usize * self.tilemap.sprite_dimensions as usize;
+
+        let sprite_x = tile.sprite_id as usize % self.tilemap.tile_width as usize;
+        let sprite_y = tile.sprite_id as usize / self.tilemap.tile_width as usize;
+
+        let draw_param = DrawParam {
+            src: Rect::new(
+                (1.0 / self.tilemap.tile_width as f32) * sprite_x as f32,
+                (1.0 / self.tilemap.tile_height as f32) * sprite_y as f32,
+                1.0 / self.tilemap.tile_width as f32,
+                1.0 / self.tilemap.tile_height as f32,
+            ),
+            dest: self.tilemap
+                .screen
+                .to_screen_coordinates(Point2::new(x as f32, y as f32)),
+            scale: self.tilemap.scale,
+            color: Some(Color::new(1.0, 1.0, 1.0, 1.0)),
+            ..Default::default()
+        };
+
+        self.batch.add(draw_param)
+    }
+
+    pub fn clear(&mut self) {
+        self.batch.clear();
     }
 }

@@ -2,7 +2,7 @@ use std::path;
 use std::rc::Rc;
 
 use ggez::event::{self, Keycode, Mod};
-use ggez::graphics::{self, Color, DrawParam, Point2, TextCached, TextFragment};
+use ggez::graphics::{self, Color, DrawParam, Point2, Rect, TextCached, TextFragment};
 use ggez::timer;
 use ggez::{Context, GameResult};
 
@@ -10,6 +10,7 @@ use assets::Assets;
 use gui::GuiManager;
 use input::{Buttons, ControllerState, InputBinding};
 use plantae::PlantaeDictionary;
+use resources;
 use screen::Screen;
 use state::Store;
 use tilemap::{SpriteLayer, TileMap};
@@ -35,7 +36,7 @@ impl AppState {
         let input_binding = InputBinding::new();
         let controller_state = ControllerState::new();
         let plantae_dictionary = PlantaeDictionary::new();
-        let world = World::new();
+        let mut world = World::new();
         let mut gui_manager = GuiManager::new();
         let store = Store::new();
 
@@ -51,8 +52,17 @@ impl AppState {
             8,
         );
 
-        let background_layer = SpriteLayer::new(&tilemap);
-        let sprite_layers = vec![background_layer];
+        let background_layer = SpriteLayer::new(tilemap.clone());
+        let entity_layer = SpriteLayer::new(tilemap.clone());
+        let sprite_layers = vec![background_layer, entity_layer];
+
+        let entity_map = resources::EntityMap::new();
+        let mut background_map = resources::BackgroundMap::new();
+
+        background_map.generate();
+
+        world.specs_world.add_resource(entity_map);
+        world.specs_world.add_resource(background_map);
 
         Ok(AppState {
             assets,
@@ -88,6 +98,34 @@ impl event::EventHandler for AppState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx);
         graphics::set_color(ctx, Color::new(0.0, 0.0, 0.0, 1.0))?;
+
+        let background_map = self.world
+            .specs_world
+            .read_resource::<resources::BackgroundMap>();
+
+        for (tile, _) in background_map.tiles.iter() {
+            if let Some(layer) = self.sprite_layers.get_mut(tile.sprite_layer as usize) {
+                layer.add(tile);
+            }
+        }
+
+        for layer in self.sprite_layers.iter_mut() {
+            let draw_param = DrawParam {
+                src: Rect::new(
+                    0.0,
+                    0.0,
+                    self.screen.screen_w as f32,
+                    self.screen.screen_h as f32,
+                ),
+                dest: Point2::new(0.0, 0.0),
+                scale: Point2::new(1.0, 1.0),
+                color: Some(Color::new(1.0, 1.0, 1.0, 1.0)),
+                ..Default::default()
+            };
+
+            graphics::draw_ex(ctx, &layer.batch, draw_param)?;
+            layer.clear();
+        }
 
         let fps = timer::get_fps(ctx);
         let fps_display = TextCached::new(TextFragment {

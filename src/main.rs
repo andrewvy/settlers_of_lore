@@ -20,6 +20,7 @@ mod gui;
 mod input;
 mod plantae;
 mod processables;
+mod resources;
 mod screen;
 mod state;
 mod tilemap;
