@@ -23,6 +23,7 @@ mod processables;
 mod resources;
 mod screen;
 mod state;
+mod systems;
 mod tilemap;
 mod widgets;
 mod world;

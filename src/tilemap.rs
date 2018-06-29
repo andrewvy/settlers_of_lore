@@ -11,8 +11,6 @@ use screen::Screen;
 pub struct Tile {
     pub sprite_layer: i32,
     pub sprite_id: i32,
-    pub x: i32,
-    pub y: i32,
 }
 
 #[derive(Clone)]
@@ -71,9 +69,9 @@ impl SpriteLayer {
         }
     }
 
-    pub fn add(&mut self, tile: &Tile) -> SpriteIdx {
-        let x: usize = tile.x as usize * self.tilemap.sprite_dimensions as usize;
-        let y: usize = tile.y as usize * self.tilemap.sprite_dimensions as usize;
+    pub fn add(&mut self, tile: &Tile, x: i32, y: i32) -> SpriteIdx {
+        let x: usize = x as usize * self.tilemap.sprite_dimensions as usize;
+        let y: usize = y as usize * self.tilemap.sprite_dimensions as usize;
 
         let sprite_x = tile.sprite_id as usize % self.tilemap.tile_width as usize;
         let sprite_y = tile.sprite_id as usize / self.tilemap.tile_width as usize;

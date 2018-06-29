@@ -1,6 +1,7 @@
-use plantae::{Plantae};
 use plantae::growth::GrowthModel;
+use plantae::Plantae;
 
+#[derive(Debug)]
 pub struct Flower {}
 
 impl Flower {

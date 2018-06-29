@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct GrowthModel {
     pub tick_mid: f64,
     pub tick_end: f64,
@@ -41,6 +42,6 @@ impl GrowthModel {
         let c = self.tick_end - self.tick_mid;
         let d = 2. * self.tick_end - self.tick_mid - tick;
 
-        return weight * ((a * b)/(c * d * tick));
+        return weight * ((a * b) / (c * d * tick));
     }
 }

@@ -1,10 +1,11 @@
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub mod flower;
 pub mod growth;
 pub mod tree;
 
+#[derive(Debug)]
 pub enum Quality {
     Perfect,
     Ideal,
@@ -24,11 +25,13 @@ pub enum GrowthState {
 // into a PlantaeInstance once planted.
 //
 // Examples: flower seed, tree nuts, fruits, etc.
+#[derive(Debug)]
 pub struct PlantaeEmbryo {
     instance_type_id: u32,
     growth_model: growth::GrowthModel,
 }
 
+#[derive(Debug)]
 pub struct Plantae<T> {
     pub id: u32,
     pub name: String,
@@ -36,8 +39,9 @@ pub struct Plantae<T> {
     pub inner: T,
 }
 
+#[derive(Debug)]
 pub struct PlantaeInstance<T> {
-    instance_type: Rc<Plantae<T>>,
+    instance_type: Arc<Plantae<T>>,
     ticks_until_growing: f64,
     ticks_until_harvestable: f64,
     ticks_until_decay: f64,
@@ -48,7 +52,7 @@ pub struct PlantaeInstance<T> {
 }
 
 impl<T> PlantaeInstance<T> {
-    pub fn new(instance_type: Rc<Plantae<T>>) -> PlantaeInstance<T> {
+    pub fn new(instance_type: Arc<Plantae<T>>) -> PlantaeInstance<T> {
         let ticks_until_growing = instance_type.growth_model.tick_mid / 3.0;
         let ticks_until_harvestable = instance_type.growth_model.tick_mid
             + (instance_type.growth_model.tick_end - instance_type.growth_model.tick_mid) / 2.0;
@@ -87,17 +91,18 @@ impl<T> PlantaeInstance<T> {
     }
 }
 
+#[derive(Debug)]
 pub struct PlantaeDictionary {
-    pub trees: HashMap<u32, Rc<Plantae<tree::Tree>>>,
-    pub flowers: HashMap<u32, Rc<Plantae<flower::Flower>>>,
+    pub trees: HashMap<u32, Arc<Plantae<tree::Tree>>>,
+    pub flowers: HashMap<u32, Arc<Plantae<flower::Flower>>>,
 }
 
 impl PlantaeDictionary {
     pub fn new() -> PlantaeDictionary {
         let mut trees = HashMap::new();
         let mut flowers = HashMap::new();
-        let tree = Rc::new(tree::Tree::new(1, "Acacia hybryda".to_owned()));
-        let flower = Rc::new(flower::Flower::new(1, "Cosmos bipinnatus".to_owned()));
+        let tree = Arc::new(tree::Tree::new(1, "Acacia hybryda".to_owned()));
+        let flower = Arc::new(flower::Flower::new(1, "Cosmos bipinnatus".to_owned()));
 
         trees.insert(1, tree);
         flowers.insert(1, flower);

@@ -2,9 +2,10 @@ use std::str;
 
 use rand::{thread_rng, Rng};
 
-use plantae::{Plantae};
 use plantae::growth::GrowthModel;
+use plantae::Plantae;
 
+#[derive(Debug)]
 pub struct Tree {
     pub has_bark: bool,
 }
@@ -17,9 +18,7 @@ impl Tree {
             id,
             name: generated_name,
             growth_model: GrowthModel::new(40.0, 80.0, 500.0),
-            inner: Tree {
-                has_bark: true,
-            },
+            inner: Tree { has_bark: true },
         }
     }
 
@@ -31,7 +30,9 @@ impl Tree {
         };
 
         let tree_names: Vec<&str> = tree_name_buffer.split('\n').collect();
-        let tree_name = thread_rng().choose(&tree_names).expect("Could not generate random name");
+        let tree_name = thread_rng()
+            .choose(&tree_names)
+            .expect("Could not generate random name");
 
         (*tree_name).to_owned()
     }

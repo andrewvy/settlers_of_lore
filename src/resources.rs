@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 
-use specs::Entity;
-
 use tilemap::Tile;
 
+#[derive(Default)]
 pub struct EntityMap {
-    pub tiles: HashMap<Tile, Entity>,
+    pub tiles: HashMap<(i32, i32), Tile>,
 }
 
 impl EntityMap {
@@ -16,8 +15,9 @@ impl EntityMap {
     }
 }
 
+#[derive(Default)]
 pub struct BackgroundMap {
-    pub tiles: HashMap<Tile, Option<Entity>>,
+    pub tiles: HashMap<(i32, i32), Tile>,
 }
 
 impl BackgroundMap {
@@ -33,11 +33,9 @@ impl BackgroundMap {
                 let tile = Tile {
                     sprite_layer: 0,
                     sprite_id: 77,
-                    x,
-                    y,
                 };
 
-                self.tiles.insert(tile, None);
+                self.tiles.insert((x, y), tile);
             }
         }
     }

@@ -1,10 +1,19 @@
-use specs::Entity;
-use world::World;
-use components::*;
+use specs::prelude::*;
 
-pub fn create_grass(world: &mut World, x: i32, y: i32) -> Entity {
-    world.specs_world
+use components::*;
+use plantae;
+use world::World;
+
+pub fn create_flower(
+    world: &mut World,
+    x: i32,
+    y: i32,
+    instance: plantae::PlantaeInstance<plantae::flower::Flower>,
+) -> Entity {
+    world
+        .specs_world
         .create_entity()
         .with(Position::new(x, y))
+        .with(Plantae::new(instance))
         .build()
 }

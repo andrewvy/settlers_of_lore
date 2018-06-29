@@ -5,19 +5,22 @@ use ggez::event::{self, Keycode, Mod};
 use ggez::graphics::{self, Color, DrawParam, Point2, Rect, TextCached, TextFragment};
 use ggez::timer;
 use ggez::{Context, GameResult};
+use specs::{Dispatcher, DispatcherBuilder};
 
 use assets::Assets;
+use entities;
 use gui::GuiManager;
 use input::{Buttons, ControllerState, InputBinding};
-use plantae::PlantaeDictionary;
+use plantae::{PlantaeDictionary, PlantaeInstance};
 use resources;
 use screen::Screen;
 use state::Store;
+use systems;
 use tilemap::{SpriteLayer, TileMap};
 use widgets;
 use world::World;
 
-pub struct AppState {
+pub struct AppState<'a> {
     assets: Assets,
     controller_state: ControllerState,
     gui_manager: GuiManager,
@@ -27,10 +30,11 @@ pub struct AppState {
     store: Rc<Store>,
     world: World,
     sprite_layers: Vec<SpriteLayer>,
+    dispatcher: Dispatcher<'a, 'a>,
 }
 
-impl AppState {
-    pub fn new(resource_dir: Option<path::PathBuf>, ctx: &mut Context) -> GameResult<AppState> {
+impl<'a> AppState<'a> {
+    pub fn new(resource_dir: Option<path::PathBuf>, ctx: &mut Context) -> GameResult<AppState<'a>> {
         let screen = Screen::new(ctx)?;
         let mut assets = Assets::new(resource_dir, ctx, &screen)?;
         let input_binding = InputBinding::new();
@@ -44,7 +48,7 @@ impl AppState {
             .widgets
             .push(widgets::menu::Menu::new(0.0, 150.0, 50.0, store.clone()));
 
-        let tilemap = TileMap::new(
+        let bg_tilemap = TileMap::new(
             "/images/cb_temple_b.png",
             screen,
             &mut assets.asset_store,
@@ -52,8 +56,16 @@ impl AppState {
             8,
         );
 
-        let background_layer = SpriteLayer::new(tilemap.clone());
-        let entity_layer = SpriteLayer::new(tilemap.clone());
+        let entity_tilemap = TileMap::new(
+            "/images/sapling.png",
+            screen,
+            &mut assets.asset_store,
+            ctx,
+            8,
+        );
+
+        let background_layer = SpriteLayer::new(bg_tilemap.clone());
+        let entity_layer = SpriteLayer::new(entity_tilemap.clone());
         let sprite_layers = vec![background_layer, entity_layer];
 
         let entity_map = resources::EntityMap::new();
@@ -63,6 +75,15 @@ impl AppState {
 
         world.specs_world.add_resource(entity_map);
         world.specs_world.add_resource(background_map);
+
+        if let Some(flower_type) = plantae_dictionary.flowers.get(&1) {
+            let instance = PlantaeInstance::new(flower_type.clone());
+            entities::create_flower(&mut world, 3, 3, instance);
+        }
+
+        let dispatcher = DispatcherBuilder::new()
+            .with(systems::Plantae { ticks: 0 }, "Plantae", &[])
+            .build();
 
         Ok(AppState {
             assets,
@@ -74,11 +95,12 @@ impl AppState {
             store,
             world,
             sprite_layers,
+            dispatcher,
         })
     }
 }
 
-impl event::EventHandler for AppState {
+impl<'a> event::EventHandler for AppState<'a> {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         const DESIRED_FPS: u32 = 60;
 
@@ -90,6 +112,7 @@ impl event::EventHandler for AppState {
             }
 
             self.controller_state.update();
+            self.dispatcher.dispatch(&self.world.specs_world.res);
         }
 
         Ok(())
@@ -103,9 +126,19 @@ impl event::EventHandler for AppState {
             .specs_world
             .read_resource::<resources::BackgroundMap>();
 
-        for (tile, _) in background_map.tiles.iter() {
+        let entity_map = self.world
+            .specs_world
+            .read_resource::<resources::EntityMap>();
+
+        for ((x, y), tile) in background_map.tiles.iter() {
             if let Some(layer) = self.sprite_layers.get_mut(tile.sprite_layer as usize) {
-                layer.add(tile);
+                layer.add(tile, *x, *y);
+            }
+        }
+
+        for ((x, y), tile) in entity_map.tiles.iter() {
+            if let Some(layer) = self.sprite_layers.get_mut(tile.sprite_layer as usize) {
+                layer.add(tile, *x, *y);
             }
         }
 
